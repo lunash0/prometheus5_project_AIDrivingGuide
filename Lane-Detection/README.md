@@ -54,15 +54,15 @@ We tracked the loss over epochs for both the training and validation datasets. T
 
 1. Total Loss over Epochs 
 
-    <img src="./results/TotalLoss_Epochs.png" alt="Total Loss over Epochs" width="80%">
+    <img src="./results/TotalLoss_Epochs.png" alt="Total Loss over Epochs" width="50%">
 
 
 2. Binary Loss over Epochs 
 
-    <img src="./results/BinaryLoss_Epochs.png" alt="Binary Loss over Epochs" width="80%">
+    <img src="./results/BinaryLoss_Epochs.png" alt="Binary Loss over Epochs" width="50%">
 3. Instance Loss over Epochs 
 
-    <img src="./results/InstanceLoss_Epochs.png" alt="Instance Loss over Epochs" width="80%">
+    <img src="./results/InstanceLoss_Epochs.png" alt="Instance Loss over Epochs" width="50%">
 
 
 ### 2) Testing On Image
@@ -70,15 +70,15 @@ We tracked the loss over epochs for both the training and validation datasets. T
 <div style="display: flex; justify-content: space-around;">
     <div>
         <p>- Binary</p>
-        <img src="./results/image.jpg" alt="Binary Result" style="width: 90%;"/>
+        <img src="./results/image.jpg" alt="Binary Result" style="width: 50%;"/>
     </div>
     <div>
         <p>- Binary</p>
-        <img src="./results/result_binary.jpg" alt="Binary Result" style="width: 90%;"/>
+        <img src="./results/result_binary.jpg" alt="Binary Result" style="width: 50%;"/>
     </div>
     <div>
         <p>Instance</p>
-        <img src="./results/result_instance.jpg" alt="Instance Result" style="width: 90%;"/>
+        <img src="./results/result_instance.jpg" alt="Instance Result" style="width: 50%;"/>
     </div>
 </div>
 
