@@ -69,7 +69,7 @@ We tracked the loss over epochs for both the training and validation datasets. T
 
 <div style="display: flex; justify-content: space-around;">
     <div>
-        <p>- Binary</p>
+        <p>- Image</p>
         <img src="./results/image.jpg" alt="Binary Result" style="width: 50%;"/>
     </div>
     <div>
@@ -77,7 +77,7 @@ We tracked the loss over epochs for both the training and validation datasets. T
         <img src="./results/result_binary.jpg" alt="Binary Result" style="width: 50%;"/>
     </div>
     <div>
-        <p>Instance</p>
+        <p>- Instance</p>
         <img src="./results/result_instance.jpg" alt="Instance Result" style="width: 50%;"/>
     </div>
 </div>
