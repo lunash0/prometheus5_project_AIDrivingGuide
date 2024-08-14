@@ -8,8 +8,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn import init
 from torchvision import models
-import model.lanenet.backbone.deeplabv3_plus.resnet_atrous as atrousnet
-import model.lanenet.backbone.deeplabv3_plus.xception as xception
+import Lane_Detection.model.lanenet.backbone.deeplabv3_plus.resnet_atrous as atrousnet
+import Lane_Detection.model.lanenet.backbone.deeplabv3_plus.xception as xception
 
 def build_backbone(backbone_name, pretrained=True, os=16):
 	if backbone_name == 'res50_atrous':

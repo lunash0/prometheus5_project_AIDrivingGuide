@@ -7,10 +7,10 @@ import numpy as np
 import torch 
 import torch.nn as nn
 import torch.nn.functional as F
-from model.lanenet.backbone.deeplabv3_plus.sync_batchnorm import SynchronizedBatchNorm2d
+from Lane_Detection.model.lanenet.backbone.deeplabv3_plus.sync_batchnorm import SynchronizedBatchNorm2d
 from torch.nn import init
-from model.lanenet.backbone.deeplabv3_plus.backbone import build_backbone
-from model.lanenet.backbone.deeplabv3_plus.ASPP import ASPP
+from Lane_Detection.model.lanenet.backbone.deeplabv3_plus.backbone import build_backbone
+from Lane_Detection.model.lanenet.backbone.deeplabv3_plus.ASPP import ASPP
 
 def weights_init_kaiming(m):
     classname = m.__class__.__name__

@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 import torch.nn.functional as F
-from model.lanenet.backbone.deeplabv3_plus.sync_batchnorm import SynchronizedBatchNorm2d
+from Lane_Detection.model.lanenet.backbone.deeplabv3_plus.sync_batchnorm import SynchronizedBatchNorm2d
 
 class ASPP(nn.Module):
 	

@@ -2,9 +2,9 @@ import torch
 import cv2
 from torchvision.transforms import functional as F
 from tqdm import tqdm
-from utils import * 
-from engine import default_argument_parser, setup
-from model import load_model
+from Pedestrian_Detection.utils import * 
+from Pedestrian_Detection.engine import default_argument_parser, setup
+from Pedestrian_Detection.model import load_model
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -73,6 +73,30 @@ def detect_video(model, input_path, output_path, device, score_thr, iou_thr, con
     video_writer.release()
     cap.release()
     print(f'[INFO] Saved video to {output_path}')
+
+def detect_ped_frame(model, frame, score_thr, iou_thr, conf_thr, warning_distance, device):
+    boxes, labels, scores = process_frame(frame, model, device, iou_thresh=iou_thr, confidence_threshold=conf_thr)
+    frame_height = frame.shape[0]
+    
+    rectangles = []
+    texts = []
+    warning_texts = []
+    for box, label, score in zip(boxes, labels, scores):
+        if score >= score_thr:
+            x1, y1, x2, y2 = map(int, box)
+            label_text = 'Person' if label == 0 else 'Object'
+            color = (255, 255, 0) if label_text == 'Person' else (0, 255, 255)
+
+            distance = frame_height - y2
+            rectangles.append([[(x1, y1), (x2, y2)], color])
+            texts.append([f"{label_text} Score: {score:.2f} Dist: {distance}px", (x1, y1 - 10),color])
+
+            if distance < warning_distance:
+                warning_text = "Collision Warning!"
+            else:
+                warning_text = ""
+            warning_texts.append([warning_text, (x1, y2 + 30)])
+    return rectangles, texts, warning_texts
 
 def main(args):
     cfg_dir, output_dir, model_path, video_name = setup(args)
