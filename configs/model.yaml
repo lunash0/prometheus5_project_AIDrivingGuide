@@ -1,0 +1,20 @@
+pedestrian: 
+  model_path: /home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/weights/pedestrian.pth
+  iou_threshold: 0.3
+  confidence_threshold: 0.3
+  warning_distance: 167
+  num_classes: 2
+
+traffic_light:
+  model_path: /home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/weights/traffic_light.pth
+  num_classes: 13
+  
+road_sign:
+  model_path: weights/road_sign.pth
+  num_classes: 2
+lane: 
+  model_path: /home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/weights/line.pth
+  model_type: ENet
+
+device: 5
+score_threshold: 0.25
