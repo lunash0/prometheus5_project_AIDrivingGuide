@@ -4,44 +4,30 @@ import numpy as np
 from engine.models import *
 from engine.utils import load_yaml, default_argument_parser 
 from tqdm import tqdm 
-from Pedestrian_Detection.ped_inference import detect_ped_frame as detect_ped_frame
-from TrafficLights_Detection.tl_inference import detect_tl_frame as detect_tl_frame
+from Pedestrian_Detection.ped_inference import detect_ped_frame
+from TrafficLights_Detection.tl_inference import detect_tl_frame
 from Lane_Detection.lane_inference import detect_lane_frame , load_lane_model
 import os 
 
 def draw_boxes_on_frame(frame, ped_info, tl_info, lane_info):
-    ped_rects, ped_texts, ped_warning_texts = ped_info 
-    tl_rectangles, tl_texts, tl_messages = tl_info 
+    ped_rects, ped_texts, _ = ped_info 
+    tl_rectangles, tl_texts, _, prev_tl_message = tl_info 
     
-    # Draw pedestrian rectangles and texts
+    # 1) Pedestrian 
     for rect, text in zip(ped_rects, ped_texts):
         cv2.rectangle(frame, rect[0][0], rect[0][1], rect[1], 2)
         cv2.putText(frame, text[0], text[1], cv2.FONT_HERSHEY_SIMPLEX, 0.5, text[2], 2)
     
-    # Draw pedestrian warning texts
-    for warning_text in ped_warning_texts:
-        cv2.putText(frame, warning_text[0], warning_text[1], cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 3)
 
-    # Draw traffic light rectangles and texts
+    # 2) Traffic Lights 
     for rect, text in zip(tl_rectangles, tl_texts):
         cv2.rectangle(frame, rect[0][0], rect[0][1], rect[1], 3)
         cv2.putText(frame, text[0], text[1], cv2.FONT_HERSHEY_SIMPLEX, 0.5, text[2], 2, lineType=cv2.LINE_AA)
-    
-    # Draw traffic light message at the top-left corner
-    if len(tl_messages) > 0:
-        message = max(tl_messages)
-        if message == 'STOP':
-            color = (0, 0, 255)
-        elif message == 'WAIT':
-            color = (0, 152, 255)
-        elif message == 'GO':
-            color = (0, 248, 211)
-        cv2.putText(frame, message, (35, 85), cv2.FONT_HERSHEY_TRIPLEX, 3, color, 6, lineType=cv2.LINE_AA)
         
-    # Draw lane information
+    # 3) Lane
     cv2.drawContours(frame, lane_info[0], lane_info[1], lane_info[2], thickness=3) 
-
-    return frame 
+    
+    return frame, prev_tl_message
 
 def detect_video(pedestrian_model, traffic_light_model, lane_model, input_path, output_path, score_thr, iou_thr, conf_thr, warning_dst, device):
     cap = cv2.VideoCapture(input_path)
@@ -53,6 +39,8 @@ def detect_video(pedestrian_model, traffic_light_model, lane_model, input_path, 
     video_fps = cap.get(cv2.CAP_PROP_FPS)
     video_writer = cv2.VideoWriter(output_path, codec, video_fps, video_size)
     frame_cnt = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+    prev_tl_message = 'STOP' # Initialize
 
     print(f'[INFO] Total number of frames: {frame_cnt}')
 
@@ -66,11 +54,11 @@ def detect_video(pedestrian_model, traffic_light_model, lane_model, input_path, 
             ped_rects, ped_texts, ped_warning_texts = detect_ped_frame(pedestrian_model, img_frame, score_thr, iou_thr, conf_thr, warning_dst, device)
             ped_info = (ped_rects, ped_texts, ped_warning_texts)
 
-            tl_rectangles, tl_texts, tl_messages = detect_tl_frame(traffic_light_model, img_frame, device, score_thr)
-            tl_info = (tl_rectangles, tl_texts, tl_messages)
+            tl_rectangles, tl_texts, tl_messages  = detect_tl_frame(traffic_light_model, img_frame, device, score_thr)
+            tl_info = (tl_rectangles, tl_texts, tl_messages, prev_tl_message)
 
             lane_info = detect_lane_frame(lane_model, img_frame, device)
-            processed_frame = draw_boxes_on_frame(img_frame, ped_info, tl_info, lane_info)
+            processed_frame, prev_tl_message = draw_boxes_on_frame(img_frame, ped_info, tl_info, lane_info)
 
             video_writer.write(processed_frame)
 
@@ -118,10 +106,30 @@ def main(CFG_DIR, OUTPUT_DIR, video_path, image_path):
         detect_image(pedestrian_model, traffic_light_model, lane_model, image_path, OUTPUT_DIR, cfg['score_threshold'], cfg['pedestrian']['iou_threshold'], cfg['pedestrian']['confidence_threshold'], cfg['pedestrian']['warning_distance'], device)
 
 if __name__ == "__main__":
-    # You can replace these paths with actual paths or pass them as arguments
     CFG_DIR = '/home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/configs/model.yaml'
-    OUTPUT_DIR = '/home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/results/test_image_1.jpg'
-    video_path = None 
-    image_path = "/home/yoojinoh/Others/PR/data/videos/test_image1.jpg"  # Set to None if you don't want to process image
+    image_path = None # "/home/yoojinoh/Others/PR/data/videos/test_image1.jpg"  # Set to None if you don't want to process image
+    OUTPUT_DIR = '/home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/results/no_message_all_video2.mp4'
+    video_path = '/home/yoojinoh/Others/PR/data/videos/test_video2.mp4'
+
+    assert video_path == None or image_path == None, "You can only pass image or video at once, but got both."
+    assert video_path != None or image_path != None, "You should pass path of either image or video, but got nothing."
 
     main(CFG_DIR, OUTPUT_DIR, video_path, image_path)
+
+# if __name__ == "__main__":
+#     # args = default_argument_parser()
+#     video_path=None 
+#     image_path=None
+
+#     # CFG_DIR = args.CFG_DIR
+#     # OUTPUT_DIR = args.OUTPUT_DIR
+    
+#     # if args.video is not None:
+#     #     video_path = args.video 
+#     # if args.image is not None:
+#     #     image_path = args.image 
+
+#     CFG_DIR = '/home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/configs/model.yaml'
+#     OUTPUT_DIR = '/home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/results/test_video2_output.mp4'
+#     video_path = '/home/yoojinoh/Others/PR/data/videos/test_video2.mp4'
+#     main(CFG_DIR, OUTPUT_DIR, video_path, image_path)

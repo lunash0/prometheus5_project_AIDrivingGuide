@@ -13,20 +13,20 @@ CLASSES = [
     'yellow and green arrow', 'green arrow and green arrow', 'red cross', 'green arrow(down)', 'green arrow', 'etc'
 ]
 
-MAP_CLASSES_COLORS = {
-     0: 3,
-     1: 1,
-     2: 2, 
-     3: 4,
-     4: 4, 
-     5: 4, 
-     6: 4, 
-     7: 4, 
-     8: 4,
-     9: 1,
-     10: 3,
-     11: 3,
-     12: 0
+MAP_CLASSES_COLORS = { # map to yellow if the class includes yellow
+     0: 3, # green
+     1: 1, # red
+     2: 2, # yellow
+     3: 4, # red and green arrow
+     4: 2, # red and yellow
+     5: 3, # green and green arror
+     6: 2, # green and yellow
+     7: 2, # yellow and green arrow
+     8: 3, # green arrow and green arrow
+     9: 1, # red cross
+     10: 3, # green arrow(down)
+     11: 3, # green arrow
+     12: 0 # etc
 }
           
 COLORS = [
@@ -85,7 +85,23 @@ def detect_tl_frame(model, frame, device, score_threshold=0.25):
                     elif color_idx == 2:
                         message = 'WAIT'
                     elif color_idx == 3:
-                        message = 'GO'
+                        message = 'PROCEED WITH CAUTION'
                     messages.append(message)       
 
     return rectangles, texts, messages
+
+def message_rule(messages, prev_tl_messages):
+    prev_tl_message = prev_tl_messages[-1]
+    message = max(messages)
+    if message == 'STOP':
+        color = (0, 0, 255)
+    elif message in ['WAIT', 'PREPARE TO PROCEED', 'PREPARE WITH CAUTION']:
+        if prev_tl_message == 'STOP' and prev_tl_messages[-2] in ['STOP', 'PREPARE TO PROCEED']:
+            message = 'PREPARE TO PROCEED'
+        elif prev_tl_message == 'PROCEED' and prev_tl_messages[-2] in ['STOP', 'PREPARE TO STOP']:
+            message = 'PREPARE TO STOP'
+        color = (0, 152, 255)
+    elif message == 'PROCEED WITH CAUTION':
+        color = (0, 248, 211)
+    prev_tl_messages.append(message) 
+    return message, color, prev_tl_messages 

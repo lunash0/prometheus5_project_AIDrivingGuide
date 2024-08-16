@@ -62,7 +62,7 @@ def detect_ped_frame(model, frame, score_thr, iou_thr, conf_thr, warning_distanc
     crossed_lines = []
 
     current_heights = []  # Heights for current frame
-
+    
     for box, label, score in zip(boxes, labels, scores):
         if score >= score_thr:
             x1, y1, x2, y2 = map(int, box)

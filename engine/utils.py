@@ -2,7 +2,7 @@ import yaml
 import argparse
 
 def default_argument_parser():
-    parser = argparse.ArgumentParser("AIDrivingGuide")
+    parser = argparse.ArgumentParser("AI Driving Guide project")
     parser.add_argument("-c", "--CFG_DIR",
                     required=True,
                     type=str,

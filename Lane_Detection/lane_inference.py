@@ -29,8 +29,13 @@ def overlay_binary_mask(image, binary_mask, alpha=0.01, color=(255, 0, 0)):
     overlay = cv2.addWeighted(image, 1 - alpha, color_mask, alpha, 0)
     return [1-alpha, color_mask, alpha]
 
-def draw_lane_contours(image, binary_mask, color=(0, 255, 255)):
-    contours, _ = cv2.findContours(binary_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+def draw_lane_contours(image, binary_mask, color=(0, 255, 255), start_fraction=2/3):
+    height = image.shape[0]
+    partial_mask = np.zeros_like(binary_mask)
+    start_height = int(height * start_fraction)
+    partial_mask[start_height:, :] = binary_mask[start_height:, :]
+    
+    contours, _ = cv2.findContours(partial_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     # cv2.drawContours(image, contours, -1, color, thickness=3)
     return [contours, -1, color]
 
