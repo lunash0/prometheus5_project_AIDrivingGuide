@@ -8,7 +8,7 @@ import pathlib
 
 from model import create_model
 from torchvision import transforms as transforms
-from original_config import (
+from config import (
     NUM_CLASSES, DEVICE, CLASSES
 )
 

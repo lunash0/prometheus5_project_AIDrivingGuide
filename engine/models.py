@@ -46,14 +46,4 @@ def load_tl_model(checkpoint_path, num_classes, device):
     model.eval()
     return model 
 
-"""3. Lane Detection Model"""
-def build_lane_model(model_type='ENet'):
-    model = LaneNet(arch=model_type)
-    return model
-def load_lane_model(checkpoint_path, model_type, device):
-    model = build_lane_model(model_type)
-    model.load_state_dict(torch.load(checkpoint_path, map_location=device))
-    model.to(device)
-    model.eval()
-    return model
 

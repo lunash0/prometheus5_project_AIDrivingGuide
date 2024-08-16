@@ -1,11 +1,13 @@
 # prometheus5_project_AIDrivingGuide
 
-# TODO
+# TO-DO
 - [x] Merge Pedestrian-Detection
 - [x] Merge Traffic-Lights-Detection
-    - [] Fix Detecting Color of Light Issue
-- [] Merge Lane-Detection
-- [] Merge Road-Sign-Detection
-- [] Add Image Output version
-- [] Refactor
+    - [x] Fix Detecting Color of Light Issue
+- [x] Merge Lane-Detection
+    - [] Develop messeage printing algorithms (for non RGB cases, considering score using threshold, etc.)
+- [] Merge Road-Sign-Detection (AFTER COMPLETION)
+- [x] Add Image Output version
+    - [] Fix image/video input coexistence issue
+- [] Refactor (Hard coded, comments, path)
 - [] Connect Streamlit

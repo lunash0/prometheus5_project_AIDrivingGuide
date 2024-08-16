@@ -10,7 +10,7 @@ import torch
 import torch.nn as nn
 from torch.functional import F
 
-DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+DEVICE = torch.device('cuda:5' if torch.cuda.is_available() else 'cpu')
 
 class FocalLoss(nn.Module):
     '''

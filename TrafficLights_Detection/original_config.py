@@ -6,7 +6,7 @@ RESIZE_TO = 640  # Resize the image for training and transforms.
 NUM_EPOCHS = 75  # Number of epochs to train for.
 NUM_WORKERS = 4  # Number of parallel workers for data loading.
 
-DEVICE = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+DEVICE = torch.device('cuda:5') if torch.cuda.is_available() else torch.device('cpu')
 
 # Training images and XML files directory.
 TRAIN_IMG = '/media/hail09/HDD/S2TLD_720x1280/normal_2/JPEGImages'

@@ -16,15 +16,13 @@ from Lane_Detection.model.lanenet.backbone.UNet import UNet_Encoder, UNet_Decode
 from Lane_Detection.model.lanenet.backbone.ENet import ENet_Encoder, ENet_Decoder
 from Lane_Detection.model.lanenet.backbone.deeplabv3_plus.deeplabv3plus import Deeplabv3plus_Encoder, Deeplabv3plus_Decoder
 
-DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-
 
 class LaneNet(nn.Module):
-    def __init__(self, in_ch = 3, arch="ENet"):
+    def __init__(self, DEVICE, in_ch = 3, arch="ENet"):
         super(LaneNet, self).__init__()
         # no of instances for segmentation
         self.no_of_instances = 3  # if you want to output RGB instance map, it should be 3.
-        print("Use {} as backbone".format(arch))
+        # print("Use {} as backbone".format(arch))
         self._arch = arch
         if self._arch == 'UNet':
             self._encoder = UNet_Encoder(in_ch)
@@ -35,11 +33,11 @@ class LaneNet(nn.Module):
             self._decoder_binary.to(DEVICE)
             self._decoder_instance.to(DEVICE)
         elif self._arch == 'ENet':
-            self._encoder = ENet_Encoder(in_ch)
+            self._encoder = ENet_Encoder(in_ch, device=DEVICE)
             self._encoder.to(DEVICE)
 
-            self._decoder_binary = ENet_Decoder(2)
-            self._decoder_instance = ENet_Decoder(self.no_of_instances)
+            self._decoder_binary = ENet_Decoder(2, device=DEVICE)
+            self._decoder_instance = ENet_Decoder(self.no_of_instances, device=DEVICE)
             self._decoder_binary.to(DEVICE)
             self._decoder_instance.to(DEVICE)
         elif self._arch == 'DeepLabv3+':

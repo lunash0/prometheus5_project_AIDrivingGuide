@@ -6,7 +6,7 @@ RESIZE_TO = 640  # Resize the image for training and transforms.
 NUM_EPOCHS = 10  # Number of epochs to train for.
 NUM_WORKERS = 4  # Number of parallel workers for data loading.
 
-DEVICE = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+DEVICE = torch.device('cuda:5') if torch.cuda.is_available() else torch.device('cpu')
 
 # Training images and JSON files directory.
 TRAIN_IMG = '/media/hail09/HDD/AIhub_costomed_dataset/training/images'
@@ -27,3 +27,12 @@ VISUALIZE_TRANSFORMED_IMAGES = False
 
 # Location to save model and plots.
 OUT_DIR = 'outputs'
+
+# RGB format.
+COLORS = [
+    [0, 0, 0],
+    [255, 0, 0],
+    [255, 255, 0],
+    [0, 255, 0],
+    [255, 255, 255]
+]

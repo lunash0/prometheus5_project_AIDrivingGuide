@@ -74,29 +74,77 @@ def detect_video(model, input_path, output_path, device, score_thr, iou_thr, con
     cap.release()
     print(f'[INFO] Saved video to {output_path}')
 
-def detect_ped_frame(model, frame, score_thr, iou_thr, conf_thr, warning_distance, device):
-    boxes, labels, scores = process_frame(frame, model, device, iou_thresh=iou_thr, confidence_threshold=conf_thr)
-    frame_height = frame.shape[0]
-    
-    rectangles = []
-    texts = []
-    warning_texts = []
+
+def draw_boxes_on_frame(frame, boxes, labels, scores, previous_heights, threshold=0.5, roi_points=None, object_width=50,
+                        focal_length=1000, collision_height_threshold=500): #before: collision_height_threshold=300
+    # if roi_points is not None:
+        # cv2.polylines(frame, [roi_points], True, (0, 200, 0), 2)
+
+    line_y1 = 600
+    line_gap = 10
+    line_ys = [line_y1 + i * line_gap for i in range(12)]
+    line_colors = [(255, 0, 0) for _ in range(12)]
+    crossed_lines = []
+    # warning_text = ""
+
+    current_heights = []  # Heights for current frame
+
     for box, label, score in zip(boxes, labels, scores):
-        if score >= score_thr:
+        if score >= threshold:
             x1, y1, x2, y2 = map(int, box)
-            label_text = 'Person' if label == 0 else 'Object'
-            color = (255, 255, 0) if label_text == 'Person' else (0, 255, 255)
+            box_height = y2 - y1  # Calculate the height of the bounding box
+            current_heights.append(box_height)  # Track current heights
 
-            distance = frame_height - y2
-            rectangles.append([[(x1, y1), (x2, y2)], color])
-            texts.append([f"{label_text} Score: {score:.2f} Dist: {distance}px", (x1, y1 - 10),color])
+            # Draw the bounding box
+            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            cv2.putText(frame, f"Label: {label} Score: {score:.2f}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                        (0, 255, 0), 2)
 
-            if distance < warning_distance:
-                warning_text = "Collision Warning!"
-            else:
-                warning_text = ""
-            warning_texts.append([warning_text, (x1, y2 + 30)])
-    return rectangles, texts, warning_texts
+            centroid_x = int((x1 + x2) / 2)
+            centroid_y = int((y1 + y2) / 2)
+
+            if roi_points is not None and cv2.pointPolygonTest(roi_points, (centroid_x, centroid_y), False) > 0:
+                cv2.circle(frame, (centroid_x, centroid_y), 5, (0, 255, 0), -1)
+                for i, line_y in enumerate(line_ys):
+                    if y2 >= line_y:
+                        line_colors[i] = (0, 0, 255)
+                        crossed_lines.append(i + 1)
+
+                # Calculate distance
+                box_width = x2 - x1
+                if box_width > 0:
+                    distance = (object_width * focal_length) / box_width
+                    cv2.putText(frame, f"Dist: {distance:.2f} cm", (x1, y1 - 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                                (0, 255, 255), 2)
+
+            # Collision avoidance
+            if box_height > collision_height_threshold:
+                # Determine warning severity
+                height_excess = box_height - collision_height_threshold
+
+                # Determine if the box is on the left, right, or near the center
+                frame_center_x = frame.shape[1] // 2
+                center_tolerance = frame.shape[1] // 10  # Define a tolerance range for "near center"
+
+                if abs((x1 + x2) // 2 - frame_center_x) <= center_tolerance:
+                    direction = "IN FRONT"
+                elif x1 < frame_center_x:
+                    direction = "ON THE LEFT"
+                else:
+                    direction = "ON THE RIGHT"
+
+                # Set warning message based on height excess and direction
+                if height_excess < 150:  # Adjust the threshold to define "Caution"
+                    warning_msg = f"CAUTION: Potential Collision {direction}"
+                else:  # Anything above this will be classified as "Warning"
+                    warning_msg = f"WARNING: Approaching Collision {direction}"
+
+                # Draw the warning text on the frame
+                cv2.putText(frame, warning_msg, (x1, y1 - 50), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2,
+                            cv2.LINE_AA)
+
+    return frame, current_heights  # Return updated heights for next frame
+
 
 def main(args):
     cfg_dir, output_dir, model_path, video_name = setup(args)
