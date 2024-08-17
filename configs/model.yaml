@@ -1,19 +1,19 @@
 pedestrian: 
-  model_path: /home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/weights/pedestrian.pth
+  model_path: /home/yoojinoh/Others/PR/data/weights/pedestrian.pth
   iou_threshold: 0.3
   confidence_threshold: 0.3
   warning_distance: 167
   num_classes: 2
 
 traffic_light:
-  model_path: /home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/weights/traffic_light.pth
+  model_path: /home/yoojinoh/Others/PR/data/weights/traffic_light.pth
   num_classes: 13
   
 road_sign:
-  model_path: weights/road_sign.pth
+  model_path: /home/yoojinoh/Others/PR/data/weights/road_sign.pth
   num_classes: 2
 lane: 
-  model_path: /home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/weights/lane.pth
+  model_path: /home/yoojinoh/Others/PR/data/weights/lane.pth
   model_type: ENet
 
 device: 2

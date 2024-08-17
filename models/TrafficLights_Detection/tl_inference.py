@@ -7,6 +7,32 @@ import argparse
 import pathlib
 from torchvision import transforms as transforms
 from torchvision.transforms import functional as F
+from torchvision.models.detection.retinanet import retinanet_resnet50_fpn, RetinaNetClassificationHead
+import torchvision
+from functools import partial
+
+"""2. Traffic Light Detection Model"""
+def build_tl_model(num_classes=91):
+    model = torchvision.models.detection.retinanet_resnet50_fpn_v2(
+        weights='DEFAULT'
+    )
+    num_anchors = model.head.classification_head.num_anchors
+
+    model.head.classification_head = RetinaNetClassificationHead(
+        in_channels=256,
+        num_anchors=num_anchors,
+        num_classes=num_classes,
+        norm_layer=partial(torch.nn.GroupNorm, 32)
+    )
+    return model
+
+def load_tl_model(checkpoint_path, num_classes, device):
+    model = build_tl_model(num_classes=num_classes)
+    checkpoint = torch.load(checkpoint_path, map_location=device)
+    model.load_state_dict(checkpoint['model_state_dict'])
+    model.to(device)
+    model.eval()
+    return model 
 
 CLASSES = [
     'green', 'red', 'yellow', 'red and green arrow', 'red and yellow', 'green and green arrow', 'green and yellow',

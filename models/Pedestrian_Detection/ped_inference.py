@@ -3,6 +3,24 @@ from torchvision.transforms import functional as F
 from models.Pedestrian_Detection.utils import * 
 import warnings
 warnings.filterwarnings('ignore')
+from torchvision.models.detection.retinanet import retinanet_resnet50_fpn, RetinaNetClassificationHead
+
+"""1. Pedestrian Detection Model"""
+def build_ped_model(num_classes):
+    model = retinanet_resnet50_fpn(pretrained=True)
+    
+    in_features = model.head.classification_head.conv[0][0].in_channels
+    num_anchors = model.head.classification_head.num_anchors
+    model.head.classification_head = RetinaNetClassificationHead(in_features, num_anchors, num_classes)
+    
+    return model
+
+def load_ped_model(checkpoint_path, num_classes, device):
+    model = build_ped_model(num_classes)
+    model.load_state_dict(torch.load(checkpoint_path, map_location=device)['model_state_dict'])
+    model.to(device)
+    model.eval()
+    return model
 
 def process_frame(frame, model, device, iou_thresh=0.3, confidence_threshold=0.4):
     image = F.to_tensor(frame).unsqueeze(0).to(device)

@@ -6,12 +6,15 @@ https://arxiv.org/pdf/1807.01726.pdf
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+import os 
+# from model.lanenet.loss import DiscriminativeLoss
+# from model.lanenet.backbone.UNet import UNet_Encoder, UNet_Decoder
+# from model.lanenet.backbone.ENet import ENet_Encoder, ENet_Decoder
+# from model.lanenet.backbone.deeplabv3_plus.deeplabv3plus import Deeplabv3plus_Encoder, Deeplabv3plus_Decoder
 from models.Lane_Detection.model.lanenet.loss import DiscriminativeLoss
 from models.Lane_Detection.model.lanenet.backbone.UNet import UNet_Encoder, UNet_Decoder
 from models.Lane_Detection.model.lanenet.backbone.ENet import ENet_Encoder, ENet_Decoder
 from models.Lane_Detection.model.lanenet.backbone.deeplabv3_plus.deeplabv3plus import Deeplabv3plus_Encoder, Deeplabv3plus_Decoder
-
 
 class LaneNet(nn.Module):
     def __init__(self, DEVICE, in_ch = 3, arch="ENet"):

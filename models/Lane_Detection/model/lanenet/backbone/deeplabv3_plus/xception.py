@@ -19,7 +19,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.model_zoo as model_zoo
 from torch.nn import init
-from Lane_Detection.model.lanenet.backbone.deeplabv3_plus.sync_batchnorm import SynchronizedBatchNorm2d
+from models.Lane_Detection.model.lanenet.backbone.deeplabv3_plus.sync_batchnorm import SynchronizedBatchNorm2d
 
 bn_mom = 0.0003
 __all__ = ['xception']

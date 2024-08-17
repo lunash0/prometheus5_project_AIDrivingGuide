@@ -3,7 +3,7 @@ import torch
 import torchvision
 from functools import partial
 # sys.path.append('/home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/')
-from Lane_Detection.model.lanenet import LaneNet
+from models.Lane_Detection.model.lanenet import LaneNet
 
 """1. Pedestrian Detection Model"""
 def build_ped_model(num_classes):
@@ -47,3 +47,14 @@ def load_tl_model(checkpoint_path, num_classes, device):
     return model 
 
 
+"""3. Lane Detection Model"""
+
+def build_lane_model(device, model_type='ENet'):
+    model = LaneNet(DEVICE=device, arch=model_type)
+    return model
+def load_lane_model(checkpoint_path, model_type, device):
+    model = build_lane_model(device, model_type)
+    model.load_state_dict(torch.load(checkpoint_path, map_location=device))
+    model.to(device)
+    model.eval()
+    return model

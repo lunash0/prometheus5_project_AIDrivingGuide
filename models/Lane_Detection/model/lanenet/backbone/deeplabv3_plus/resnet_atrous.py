@@ -1,7 +1,7 @@
 import torch.nn as nn
 import math
 import torch.utils.model_zoo as model_zoo
-from Lane_Detection.model.lanenet.backbone.deeplabv3_plus.sync_batchnorm import SynchronizedBatchNorm2d
+from models.Lane_Detection.model.lanenet.backbone.deeplabv3_plus.sync_batchnorm import SynchronizedBatchNorm2d
 from torch.nn import init
 
 def weights_init_kaiming(m):

@@ -1,13 +1,12 @@
 import os
 import argparse
 import torch
-from dataloader.transformers import Rescale
 from model.lanenet.LaneNet import LaneNet
 from torchvision import transforms
 import numpy as np
 from PIL import Image
 import cv2
-from google.colab.patches import cv2_imshow
+from scipy.spatial import distance as dist
 
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -24,6 +23,43 @@ def overlay_binary_mask(image, binary_mask, alpha=0.5, color=(255, 0, 0)):
     overlay = cv2.addWeighted(image, 1 - alpha, color_mask, alpha, 0)
     return overlay
 
+def merge_close_contours(contours, threshold=50):
+    merged_contours = []
+    used = [False] * len(contours)
+
+    for i, c1 in enumerate(contours):
+        if used[i]:
+            continue
+        merged_contour = c1
+        used[i] = True
+
+        for j, c2 in enumerate(contours):
+            if i == j or used[j]:
+                continue
+
+            d = dist.cdist(
+                merged_contour.reshape(-1, 2), c2.reshape(-1, 2), "euclidean"
+            )
+            if np.any(d < threshold):
+                merged_contour = np.vstack((merged_contour, c2))
+                used[j] = True
+
+        merged_contours.append(merged_contour)
+
+    return merged_contours
+
+
+def calculate_weighted_score(contour, image_width):
+    length = cv2.arcLength(contour, closed=True)
+
+    contour_center_x = np.mean(contour[:, 0, 0])
+
+    distance_from_center = abs(contour_center_x - image_width / 2)
+
+    weighted_score = length / (distance_from_center + 1)
+
+    return weighted_score
+
 
 def process_frame(model, frame, transform, resize_width, resize_height):
     input_img = cv2.resize(frame, (resize_width, resize_height))
@@ -31,12 +67,28 @@ def process_frame(model, frame, transform, resize_width, resize_height):
     tensor_img = torch.unsqueeze(tensor_img, dim=0)
     outputs = model(tensor_img)
     binary_pred = torch.squeeze(outputs["binary_seg_pred"]).to("cpu").numpy() * 255
-
     binary_pred_resized = cv2.resize(binary_pred, (resize_width, resize_height)).astype(
         np.uint8
     )
+
+    contours, _ = cv2.findContours(
+        binary_pred_resized, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+    )
+
+    merged_contours = merge_close_contours(contours, threshold=1)  # threshold
+
+    weighted_contours = sorted(
+        merged_contours,
+        key=lambda c: calculate_weighted_score(c, resize_width),
+        reverse=True,
+    )[:5]
+    # contours count
+
+    top5_mask = np.zeros_like(binary_pred_resized)
+    cv2.drawContours(top5_mask, weighted_contours, -1, 255, thickness=cv2.FILLED)
+
     overlay_img = overlay_binary_mask(
-        input_img, binary_pred_resized, alpha=0.5, color=(0, 0, 255)
+        input_img, top5_mask, alpha=0.5, color=(0, 0, 255)
     )
     return overlay_img
 
@@ -87,7 +139,6 @@ def test():
         cap.release()
         out.release()
 
-        # Display the result video in Colab
         from IPython.display import Video
 
         return Video("test_output/result.avi")
@@ -103,23 +154,11 @@ def test():
             print(f"Failed to load image {img_path}.")
             return
 
-        dummy_input = load_test_data(input_img, data_transform).to(DEVICE)
-        dummy_input = torch.unsqueeze(dummy_input, dim=0)
-        outputs = model(dummy_input)
-
-        input_img = cv2.resize(input_img, (resize_width, resize_height))
-
-        binary_pred = torch.squeeze(outputs["binary_seg_pred"]).to("cpu").numpy() * 255
-        binary_pred_resized = cv2.resize(
-            binary_pred, (resize_width, resize_height)
-        ).astype(np.uint8)
-
-        overlay_img = overlay_binary_mask(
-            input_img, binary_pred_resized, alpha=0.5, color=(0, 0, 255)
+        overlay_img = process_frame(
+            model, input_img, data_transform, resize_width, resize_height
         )
 
-        cv2.imwrite(os.path.join("test_output", "input.jpg"), input_img)
-        cv2.imwrite(os.path.join("test_output", "binary_output.jpg"), overlay_img)
+        cv2.imwrite(os.path.join("test_output", "overlay_output.jpg"), overlay_img)
 
 
 def parse_args():

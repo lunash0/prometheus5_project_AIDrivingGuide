@@ -1,35 +1,27 @@
-# Python In-built packages
 from pathlib import Path
 import PIL
-
-# External packages
+import os 
+import sys 
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+import settings
+import helper 
 import streamlit as st
 
-# Local Modules
-import settings
-import helper
-
-# Setting page layout
 st.set_page_config(
     page_title="AI Driving Guide Simulation",
     page_icon="ð",
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
-# Main page heading
 st.title("AI Driving Guide Simulation")
-
-# Sidebar
 st.sidebar.header("Task Config")
 
-# Task Options
 task_type = st.sidebar.radio(
     "Select Task", ['Bounding Box', 'Driving Guide Comment'])
 
 # Confidence level
 confidence = float(st.sidebar.slider(
-    "Select Model Confidence", 25, 100, 40)) / 100
+    "Select Model Confidence", 1, 100, 15)) / 100
 
 # File paths based on task selection
 if task_type == 'Bounding Box':
@@ -84,10 +76,35 @@ elif source_radio == settings.VIDEO:
 
     if st.sidebar.button('Process Video'):
         if source_file is not None:
-            helper.process_video(file_path, source_file, confidence)
-            st.video(settings.OUTPUT_VIDEO_PATH)
+            print(f'source_file: {source_file}')
+            helper.process_video(source_file, confidence)
+            video_path = settings.OUTPUT_VIDEO_PATH.as_posix()  # Convert Path to string
+            st.video(video_path)
+            # st.video(settings.OUTPUT_VIDEO_PATH)
         else:
             st.error("Please upload a video file.")
 
 else:
     st.error("Please select a valid source type!")
+
+#TODO(Yoojin) Solve Error
+""" 
+[INFO] Saved video to /home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/app/videos/processed_video.mp4
+2024-08-17 14:15:10.975 Uncaught app exception
+Traceback (most recent call last):
+  File "/home/yoojinoh/.miniconda3/envs/deeplearning/lib/python3.8/site-packages/streamlit/runtime/scriptrunner/exec_code.py", line 85, in exec_func_with_error_handling
+    result = func()
+  File "/home/yoojinoh/.miniconda3/envs/deeplearning/lib/python3.8/site-packages/streamlit/runtime/scriptrunner/script_runner.py", line 576, in code_to_exec
+    exec(code, module.__dict__)
+  File "/home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/app/app.py", line 83, in <module>
+    st.video(settings.OUTPUT_VIDEO_PATH)
+  File "/home/yoojinoh/.miniconda3/envs/deeplearning/lib/python3.8/site-packages/streamlit/runtime/metrics_util.py", line 408, in wrapped_func
+    result = non_optional_func(*args, **kwargs)
+  File "/home/yoojinoh/.miniconda3/envs/deeplearning/lib/python3.8/site-packages/streamlit/elements/media.py", line 341, in video
+    marshall_video(
+  File "/home/yoojinoh/.miniconda3/envs/deeplearning/lib/python3.8/site-packages/streamlit/elements/media.py", line 531, in marshall_video
+    _marshall_av_media(coordinates, proto, data, mimetype)
+  File "/home/yoojinoh/.miniconda3/envs/deeplearning/lib/python3.8/site-packages/streamlit/elements/media.py", line 435, in _marshall_av_media
+    raise RuntimeError("Invalid binary data format: %s" % type(data))
+RuntimeError: Invalid binary data format: <class 'pathlib.PosixPath'>
+"""
