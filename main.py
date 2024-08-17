@@ -4,9 +4,9 @@ import numpy as np
 from engine.models import *
 from engine.utils import load_yaml, default_argument_parser 
 from tqdm import tqdm 
-from Pedestrian_Detection.ped_inference import detect_ped_frame
-from TrafficLights_Detection.tl_inference import detect_tl_frame, message_rule
-from Lane_Detection.lane_inference import detect_lane_frame , load_lane_model
+from models.Pedestrian_Detection.ped_inference import detect_ped_frame
+from models.TrafficLights_Detection.tl_inference import detect_tl_frame, message_rule
+from models.Lane_Detection.lane_inference import detect_lane_frame , load_lane_model
 import os 
 
 def draw_boxes_on_frame(frame, ped_info, tl_info, lane_info):

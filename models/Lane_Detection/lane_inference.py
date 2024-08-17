@@ -1,6 +1,6 @@
 import torch
-from Lane_Detection.dataloader.transformers import Rescale
-from Lane_Detection.model.lanenet.LaneNet import LaneNet
+from models.Lane_Detection.dataloader.transformers import Rescale
+from models.Lane_Detection.model.lanenet.LaneNet import LaneNet
 from torchvision import transforms
 import numpy as np
 from PIL import Image

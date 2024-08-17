@@ -1,6 +1,6 @@
 import torch
 from torchvision.transforms import functional as F
-from Pedestrian_Detection.utils import * 
+from models.Pedestrian_Detection.utils import * 
 import warnings
 warnings.filterwarnings('ignore')
 
