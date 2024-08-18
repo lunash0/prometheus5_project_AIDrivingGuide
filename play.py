@@ -5,9 +5,6 @@ from tqdm import tqdm
 from models.Pedestrian_Detection.ped_inference import detect_ped_frame, load_ped_model
 from models.TrafficLights_Detection.tl_inference import detect_tl_frame, message_rule, load_tl_model
 from models.Lane_Detection.lane_inference import detect_lane_frame , load_lane_model
-import os
-import time
-import streamlit as st
 
 def draw_boxes_on_frame(frame, ped_info, tl_info, lane_info, task_type='all'):
     """
@@ -52,78 +49,68 @@ def draw_boxes_on_frame(frame, ped_info, tl_info, lane_info, task_type='all'):
     return frame, prev_tl_messages
 
 
-
-def detect_video(task_type, pedestrian_model, traffic_light_model, lane_model, input_path, output_path, \
-                 score_thr, iou_thr, conf_thr, warning_dst, device, \
+def detect_video(task_type, pedestrian_model, traffic_light_model, lane_model, input_path, output_path, 
+                 score_thr, iou_thr, conf_thr, warning_dst, device, 
                  resize_width=1280, resize_height=720):
+    cap = cv2.VideoCapture(input_path)
+    video_fps = cap.get(cv2.CAP_PROP_FPS) 
+
+    codec = cv2.VideoWriter_fourcc(*'XVID')
+    avi_output_path = output_path.with_suffix(".avi") 
+    video_writer = cv2.VideoWriter(str(avi_output_path), codec, video_fps, (resize_width, resize_height))
     
-    with st.spinner('Processing video, please wait...'):
-        cap = cv2.VideoCapture(input_path)
-        if not cap.isOpened():
-            st.error('Error while trying to read video. Please check path again')
-            return
+    frame_cnt = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-        codec = cv2.VideoWriter_fourcc(*'XVID')
-        video_size = (resize_width, resize_height)
-        video_fps = cap.get(cv2.CAP_PROP_FPS)
+    prev_tl_messages = ['NONE', 'NONE'] 
 
-        video_writer = cv2.VideoWriter(output_path, codec, video_fps, video_size)
-        frame_cnt = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    print(f'[INFO] Total number of frames: {frame_cnt}')
 
-        prev_tl_messages = ['NONE', 'NONE']  # Initialize
+    with tqdm(total=frame_cnt, desc="Processing Frames") as pbar:
+        while True:
+            hasFrame, img_frame = cap.read()
+            if not hasFrame:
+                print(f'Processed all frames')
+                break
+            img_frame = cv2.resize(img_frame, (resize_width, resize_height))
+            
+            ped_rects, ped_texts, ped_warning_texts = detect_ped_frame(pedestrian_model, img_frame, score_thr, iou_thr, conf_thr, warning_dst, device)
+            ped_info = (ped_rects, ped_texts, ped_warning_texts)
 
-        print(f'[INFO] Total number of frames: {frame_cnt}')
+            tl_rectangles, tl_texts, tl_messages  = detect_tl_frame(traffic_light_model, img_frame, device, score_thr)
+            tl_info = (tl_rectangles, tl_texts, tl_messages, prev_tl_messages)
 
-        with tqdm(total=frame_cnt, desc="Processing Frames") as pbar:
-            while True:
-                hasFrame, img_frame = cap.read()
-                if not hasFrame:
-                    print(f'Processed all frames')
-                    break
-                img_frame = cv2.resize(img_frame, (resize_width, resize_height))
-                
-                ped_rects, ped_texts, ped_warning_texts = detect_ped_frame(pedestrian_model, img_frame, score_thr, iou_thr, conf_thr, warning_dst, device)
-                ped_info = (ped_rects, ped_texts, ped_warning_texts)
+            lane_info = detect_lane_frame(lane_model, img_frame, device)
+            processed_frame, prev_tl_messages = draw_boxes_on_frame(img_frame, ped_info, tl_info, lane_info, task_type)
 
-                tl_rectangles, tl_texts, tl_messages  = detect_tl_frame(traffic_light_model, img_frame, device, score_thr)
-                tl_info = (tl_rectangles, tl_texts, tl_messages, prev_tl_messages)
+            video_writer.write(processed_frame) 
+            pbar.update(1)
 
-                lane_info = detect_lane_frame(lane_model, img_frame, device)
-                processed_frame, prev_tl_messages = draw_boxes_on_frame(img_frame, ped_info, tl_info, lane_info, task_type)
+    video_writer.release()
+    cap.release()
+    print(f'[INFO] Saved video to {avi_output_path}')
 
-                video_writer.write(processed_frame) 
-                pbar.update(1)
-
-        video_writer.release()
-        cap.release()
-        print(f'[INFO] Saved video to {output_path}')
 
 def detect_image(task_type, pedestrian_model, traffic_light_model, lane_model, input_path, output_path, \
                  score_thr, iou_thr, conf_thr, warning_dst, device, \
                  resize_width=1280, resize_height=720):
     
-    with st.spinner('Processing image, please wait...'):
-        img_frame = cv2.imread(input_path)
+    img_frame = cv2.imread(input_path)
 
-        if img_frame is None:
-            st.error('Error while trying to read image. Please check the path again')
-            return
+    img_frame = cv2.resize(img_frame, (resize_width, resize_height))
+    prev_tl_messages = ['STOP', 'STOP']  # Initialize
 
-        img_frame = cv2.resize(img_frame, (resize_width, resize_height))
-        prev_tl_messages = ['STOP', 'STOP']  # Initialize
+    ped_rects, ped_texts, ped_warning_texts = detect_ped_frame(pedestrian_model, img_frame, score_thr, iou_thr, conf_thr, warning_dst, device)
+    ped_info = (ped_rects, ped_texts, ped_warning_texts)
 
-        ped_rects, ped_texts, ped_warning_texts = detect_ped_frame(pedestrian_model, img_frame, score_thr, iou_thr, conf_thr, warning_dst, device)
-        ped_info = (ped_rects, ped_texts, ped_warning_texts)
+    tl_rectangles, tl_texts, tl_messages = detect_tl_frame(traffic_light_model, img_frame, device, score_thr)
+    tl_info = (tl_rectangles, tl_texts, tl_messages, prev_tl_messages)
 
-        tl_rectangles, tl_texts, tl_messages = detect_tl_frame(traffic_light_model, img_frame, device, score_thr)
-        tl_info = (tl_rectangles, tl_texts, tl_messages, prev_tl_messages)
+    lane_info = detect_lane_frame(lane_model, img_frame, device, start_fraction=1/2)
+    processed_frame, prev_tl_messages = draw_boxes_on_frame(img_frame, ped_info, tl_info, lane_info, task_type)
 
-        lane_info = detect_lane_frame(lane_model, img_frame, device, start_fraction=1/2)
-        processed_frame, prev_tl_messages = draw_boxes_on_frame(img_frame, ped_info, tl_info, lane_info, task_type)
+    cv2.imwrite(output_path, processed_frame)
+    print(f'[INFO] Saved image to {output_path}')
 
-        cv2.imwrite(output_path, processed_frame)
-        print(f'[INFO] Saved image to {output_path}')
-        
 
 def main(task_type, CFG_DIR, OUTPUT_DIR, video_path, image_path, score_threshold): 
     device = torch.device("cuda:5" if torch.cuda.is_available() else "cpu") 
@@ -143,9 +130,9 @@ def main(task_type, CFG_DIR, OUTPUT_DIR, video_path, image_path, score_threshold
         print(f'[INFO] Processing image: {image_path}')        
         detect_image(task_type, pedestrian_model, traffic_light_model, lane_model, image_path, OUTPUT_DIR, score_threshold, cfg['pedestrian']['iou_threshold'], cfg['pedestrian']['confidence_threshold'], cfg['pedestrian']['warning_distance'], device)
 
-""" 
 if  __name__ == "__main__":
     main(task_type="all", CFG_DIR='/home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/configs/model.yaml', \
-         OUTPUT_DIR='/home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/app/videos/plz2.png', \
-             video_path=None, image_path='/home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/app/images/default_image_1.png', score_threshold=0.25)
-"""
+         OUTPUT_DIR='/home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/app/videos/demo_testing_output.mp4', \
+             video_path='/home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/app/videos/demo_testing.mp4', \
+                image_path=None, 
+                score_threshold=0.25)

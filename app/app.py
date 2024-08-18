@@ -47,8 +47,27 @@ caption_css = """
     }
 </style>
 """
+button_animation_css = """
+<style>
+.stButton > button {
+    transition: background-color 0.3s ease;
+}
+.stButton > button:hover {
+    background-color: #4CAF50;
+    color: white;
+}
+</style>
+"""
 st.markdown(sidebar_bg_img, unsafe_allow_html=True)
 st.markdown(caption_css, unsafe_allow_html=True)
+st.markdown(button_animation_css, unsafe_allow_html=True)
+
+
+import streamlit as st
+from pathlib import Path
+import settings
+import helper
+import PIL 
 
 def page_home():
     st.title("🚗 AI Driving Guide Simulation")
@@ -58,23 +77,36 @@ def page_home():
         ['📦 Bounding Box', '📝 Driving Guide Comment', '⚔️ Show All']
     )
     score_threshold = float(st.sidebar.slider(
-        "Select Model Score Threshold", 25, 100, 10)) / 100
+        "Select Model Score Threshold", 25, 100, 10, help="This slider allows you to set the confidence threshold for the model.")) / 100
 
     file_path = Path(settings.TASK_FILE) 
         
-    st.sidebar.header("Source Config")
+    st.sidebar.header("🔍 Source Config")
     source_radio = st.sidebar.radio("Select Source", [settings.DEFAULT, settings.IMAGE, settings.VIDEO])
 
     source_file = None
 
     # 1) HOME
     if source_radio == settings.DEFAULT:
-        st.subheader('Select Source to test the Simulation !')
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("![demo_testing](https://github.com/user-attachments/assets/57c3cc28-0641-4848-8188-3e6eb6fbf14c)")
-        with col2:
-            st.markdown("![video_demo](https://github.com/user-attachments/assets/f7b7a5a6-f9f1-429c-8fc4-1caa9da09e3c)", unsafe_allow_html=True)
+        st.subheader('Select Your Source to Start the Simulation !')
+        st.markdown(
+            """
+            <style>
+            .gif-container {
+                display: flex;
+                justify-content: center;
+            }
+            .gif-container img {
+                width: 800px; /* 원하는 너비로 조절 */
+                height: auto; /* 높이를 자동으로 조절하여 비율 유지 */
+            }
+            </style>
+            <div class="gif-container">
+                <img src="https://github.com/user-attachments/assets/819a1b4a-fb48-4f2a-abf6-78eb7cf4bc88">
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
         
         st.markdown("### How to Use the Simulation 📋")
         st.write("""
@@ -95,37 +127,57 @@ def page_home():
     elif source_radio == settings.IMAGE:
         source_file = st.sidebar.file_uploader("📷 Choose an image...", type=("jpg", "jpeg", "png", 'bmp', 'webp'))
         if task_type == "⚔️ Show All":     
+            if source_file is None:
+                st.image(str(settings.DEFAULT_IMAGE), caption="Default Image", use_column_width=False,  width=600)
+            else:
+                st.image(source_file, caption="Uploaded Image", use_column_width=True)
+
             col1, col2 = st.columns(2)
             
-            if st.sidebar.button('🔄 Process Video', key='process_video_button'):
-                if source_file is not None:
-                    # Process the first video (Driving Guide Comment)
-                    video_path_1 = helper.process_video(source_file, score_threshold, "📝 Driving Guide Comment", settings.OUTPUT_VIDEO_PATH_1)
-                    # Process the second video (Bounding Box)
-                    video_path_2 = helper.process_video(source_file, score_threshold, "📦 Bounding Box", settings.OUTPUT_VIDEO_PATH_2)
-
-                    with col1:
-                        st.video(str(video_path_1), autoplay=True)
-                    
-                    with col2:
-                        st.video(str(video_path_2), autoplay=True)
+            if st.sidebar.button('🔄 Process Image', key='process_image_button'):
+                if source_file is None:
+                    st.error("⚠️ Please upload an image file before processing.")
+                with col1:
+                    helper.process_image(source_file, score_threshold, "📝 Driving Guide Comment", settings.OUTPUT_IMAGE_PATH_1)
+                    processed_image = PIL.Image.open(settings.OUTPUT_IMAGE_PATH_1)
+                    st.image(processed_image, caption='Comments View', use_column_width=True) 
+                with col2:
+                    helper.process_image(source_file, score_threshold, "📦 Bounding Box", settings.OUTPUT_IMAGE_PATH_2)
+                    processed_image = PIL.Image.open(settings.OUTPUT_IMAGE_PATH_2)
+                    st.image(processed_image, caption='Total View', use_column_width=True) 
 
                     st.caption(f'Selected Score threshold : {score_threshold}')
                     st.caption(f'📒 NOTICE : Re-run to apply updated threshold !')
-            
+            else:
+                with col1:
+                    if source_file is None:
+                        st.image(str(settings.DEFAULT_OUTPUT_IMAGE_2), caption="Default Comments View", use_column_width=True)
+                with col2:
+                    if source_file is None:
+                        st.image(str(settings.DEFAULT_OUTPUT_IMAGE_1), caption="Default Total Image", use_column_width=True)
+                        
         elif task_type == "📝 Driving Guide Comment" or "📦 Bounding Box":
             col1, col2 = st.columns(2)
             with col1:
                 if source_file is None:
                     st.image(str(settings.DEFAULT_IMAGE), caption="Default Image", use_column_width=True)
                 else:
-                    #uploaded_image = PIL.Image.open(source_file)
                     st.image(source_file, caption="Uploaded Image", use_column_width=True)
             with col2:
-                if st.sidebar.button('🔄 Process Image', key="process_image_one_button"):
-                    helper.process_image(source_file, score_threshold, task_type)
-                    processed_image = PIL.Image.open(settings.OUTPUT_IMAGE_PATH)
-                    st.image(processed_image, caption='Output View', use_column_width=True)    
+                if source_file is None:
+                    if task_type == "📝 Driving Guide Comment":
+                        default_path = settings.DEFAULT_OUTPUT_IMAGE_2
+                    else:
+                        default_path = settings.DEFAULT_OUTPUT_IMAGE_1  
+                    st.image(str(default_path), caption="Default View", use_column_width=True)
+
+                else:
+                    if st.sidebar.button('🔄 Process Image', key="process_image_one_button"):
+                        if source_file is None:
+                            st.error("⚠️ Please upload an image file before processing.")
+                        helper.process_image(source_file, score_threshold, task_type)
+                        processed_image = PIL.Image.open(settings.OUTPUT_IMAGE_PATH_1)
+                        st.image(processed_image, caption='Output View', use_column_width=True)    
             st.caption(f'Selected Score threshold : {score_threshold}')
             st.caption(f'Re-run to apply updated threshold !')
         else:
@@ -139,6 +191,8 @@ def page_home():
             col1, col2 = st.columns(2)
             
             if st.sidebar.button('🔄 Process Video', key='process_video_button'):
+                if source_file is None:
+                    st.error("⚠️ Please upload an image file before processing.")
                 if source_file is not None:
                     # Save the uploaded video to a file
                     with open(settings.UPLOADED_VIDEO_PATH, 'wb') as out_file:
@@ -148,33 +202,39 @@ def page_home():
                     with col1:
                         video_path_1 = helper.process_video(source_file, score_threshold, "📝 Driving Guide Comment", settings.OUTPUT_VIDEO_PATH_1)
                         st.video(str(video_path_1))
+                        st.caption("📝 Driving Guide Comment")
                     
                     # Process the second video (Bounding Box)
                     with col2:
                         video_path_2 = helper.process_video(source_file, score_threshold, "📦 Bounding Box", settings.OUTPUT_VIDEO_PATH_2)
                         st.video(str(video_path_2))
+                        st.caption("📦 Bounding Box Comment")
 
                     st.caption(f'Selected Score threshold : {score_threshold}')
                     st.caption(f'📒 NOTICE : Re-run to apply updated threshold !')
             
         elif task_type == "📝 Driving Guide Comment" or "📦 Bounding Box":
             col1, col2 = st.columns(2)
-            with col1:
-                if source_file is None: # Default Video
-                    st.markdown("![video_demo](https://github.com/user-attachments/assets/f7b7a5a6-f9f1-429c-8fc4-1caa9da09e3c)", unsafe_allow_html=True)
-                else:
+            if source_file is None:
+                st.markdown("![video_demo](https://github.com/user-attachments/assets/f7b7a5a6-f9f1-429c-8fc4-1caa9da09e3c)", unsafe_allow_html=True)
+            else: # Default Video
+                with open(settings.UPLOADED_VIDEO_PATH, 'wb') as out_file:
+                    out_file.write(source_file.getbuffer())
+                with col1:
                     st.video(source_file, autoplay=True)
-            with col2:
-                if st.sidebar.button('🔄 Process Image', key="process_video_one_button"):
-                    helper.process_video(source_file, score_threshold, task_type, settings.OUTPUT_VIDEO_PATH_1)
-                    video_path = settings.OUTPUT_VIDEO_PATH_1.as_posix()
-                    st.video(video_path)
+                    st.caption(f"Original Video")
+                with col2:
+                    if st.sidebar.button('🔄 Process Video', key="process_video_one_button"):
+                        if source_file is None:
+                            st.error("⚠️ Please upload an image file before processing.")
+                        video_path = helper.process_video(source_file, score_threshold, task_type)
+                        st.video(str(video_path))
+                        st.caption(f"{task_type}")
 
-            st.caption(f'Selected Score threshold : {score_threshold}')
-            st.caption(f'Re-run to apply updated threshold !')
+                st.caption(f'🔹Selected Score threshold : {score_threshold}')
+                st.caption(f'🔹Re-run to apply updated threshold !')
         else:
             st.error(f"⚠️ Inavailable Selection")
-
 
 def page_statistics():
     st.title("📊 Statistics")
@@ -193,3 +253,6 @@ elif page == "📊 Statistics":
     page_statistics()
 
 st.markdown('<div class="caption">Prometheus</div>', unsafe_allow_html=True)
+
+
+

@@ -5,8 +5,9 @@ import settings
 from play import main as all_main 
 import moviepy.editor as mp 
 import PIL 
+import subprocess
 
-def process_image(image, score_threshold, type="📝 Driving Guide Comment", output_path = settings.OUTPUT_IMAGE_PATH):
+def process_image(image, score_threshold, type="📝 Driving Guide Comment", output_path = settings.OUTPUT_IMAGE_PATH_1):
     with open(settings.UPLOADED_IMAGE_PATH, 'wb') as img_file:
         img_file.write(image.getbuffer())
 
@@ -22,26 +23,29 @@ def process_image(image, score_threshold, type="📝 Driving Guide Comment", out
         return
 
 def process_video(video, score_threshold, type='📝 Driving Guide Comment', output_path=settings.OUTPUT_VIDEO_PATH_1):
+    # AVI 파일 경로 설정
+    avi_output_path = output_path.with_suffix('.avi')
+
+    # Process the video based on the selected task type
     if type == "📦 Bounding Box":
-        all_main('all', settings.CFG_DIR, output_path, settings.UPLOADED_VIDEO_PATH, None, score_threshold)
+        all_main('all', settings.CFG_DIR, avi_output_path, settings.UPLOADED_VIDEO_PATH, None, score_threshold)
     elif type == "📝 Driving Guide Comment":
-        all_main('message', settings.CFG_DIR, output_path, settings.UPLOADED_VIDEO_PATH, None, score_threshold)
-    # elif type == "⚔️ Show All":
-    #     process_video(video, score_threshold, type="📦 Bounding Box", output_path=settings.OUTPUT_VIDEO_PATH_1)
-    #     process_video(video, score_threshold, type= "📝 Driving Guide Comment", output_path=settings.OUTPUT_VIDEO_PATH_2)
+        all_main('message', settings.CFG_DIR, avi_output_path, settings.UPLOADED_VIDEO_PATH, None, score_threshold)
 
-    if not output_path.exists():
-        st.error(f"⚠️ Processed video not found at: {output_path}")
+    # Check if the AVI output file exists
+    if not avi_output_path.exists():
+        st.error(f"⚠️ Processed AVI video not found at: {avi_output_path}")
         return
 
-    # Convert the processed video to MP4 format and overwrite the original file
-    clip = mp.VideoFileClip(str(output_path))
-    converted_output_path = output_path.with_suffix(".mp4")
-    clip.write_videofile(str(converted_output_path), codec="libx264")
+    # Convert the AVI to MP4
+    convert_avi_to_mp4(avi_output_path, output_path)
 
-    if not converted_output_path.exists():
-        st.error(f"⚠️ Converted video not found at: {converted_output_path}")
-        return
+    # Return the path to the processed video, now in MP4 format
+    return output_path
+
+def convert_avi_to_mp4(avi_path, mp4_path):
+    command = f"ffmpeg -y -i {avi_path} -vcodec libx264 {mp4_path}"
+    subprocess.run(command, shell=True)
+
     
-    return converted_output_path  
 
