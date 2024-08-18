@@ -2,83 +2,46 @@ import streamlit as st
 import cv2
 from pathlib import Path
 import settings
-from main import main as all_main 
+from play import main as all_main 
+import moviepy.editor as mp 
+import PIL 
 
-def process_image(file_path, image, conf):
-    """
-    Process an image based on the selected task and file path.
+def process_image(image, score_threshold, type="📝 Driving Guide Comment", output_path = settings.OUTPUT_IMAGE_PATH):
+    with open(settings.UPLOADED_IMAGE_PATH, 'wb') as img_file:
+        img_file.write(image.getbuffer())
 
-    Args:
-    - file_path (Path): Path to the task-specific file.
-    - image (PIL Image): Image to be processed.
-    - conf (float): Confidence threshold for processing.
-
-    Returns:
-    None
-    """
-    # Example processing logic based on task type
-    if "Bounding Box" in str(file_path):
-        # Add your bounding box detection logic here
-        st.write("Processing with Bounding Box model...")
-        # Assume output is saved at settings.OUTPUT_IMAGE_PATH
-    elif "Driving Guide Comment" in str(file_path):
-        # Add your driving guide comment logic here
-        st.write("Processing with Driving Guide Comment model...")
-        # Assume output is saved at settings.OUTPUT_IMAGE_PATH
+    if type == "📦 Bounding Box":
+        all_main('all', settings.CFG_DIR, output_path, None, settings.UPLOADED_IMAGE_PATH, score_threshold)
+    elif type == "📝 Driving Guide Comment":
+        all_main('message', settings.CFG_DIR, output_path, None, settings.UPLOADED_IMAGE_PATH, score_threshold)
+    # elif type == "⚔️ Show All":
+    #     all_main('all', settings.CFG_DIR, settings.OUTPUT_IMAGE_PATH, None, settings.UPLOADED_IMAGE_PATH, score_threshold)
+    #     all_main('message', settings.CFG_DIR, settings.OUTPUT_IMAGE_PATH_2, None, settings.UPLOADED_IMAGE_PATH, score_threshold)
     else:
-        st.error("Invalid task selected")
+        st.error("⚠️ Invalid task selected")
+        return
 
+def process_video(video, score_threshold, type='📝 Driving Guide Comment', output_path=settings.OUTPUT_VIDEO_PATH_1):
+    if type == "📦 Bounding Box":
+        all_main('all', settings.CFG_DIR, output_path, settings.UPLOADED_VIDEO_PATH, None, score_threshold)
+    elif type == "📝 Driving Guide Comment":
+        all_main('message', settings.CFG_DIR, output_path, settings.UPLOADED_VIDEO_PATH, None, score_threshold)
+    # elif type == "⚔️ Show All":
+    #     process_video(video, score_threshold, type="📦 Bounding Box", output_path=settings.OUTPUT_VIDEO_PATH_1)
+    #     process_video(video, score_threshold, type= "📝 Driving Guide Comment", output_path=settings.OUTPUT_VIDEO_PATH_2)
 
-# def process_video(video, score_threshold, type='Driving Guide Comment'):
-#     """
-#     Process a video based on the selected task and file path.
+    if not output_path.exists():
+        st.error(f"⚠️ Processed video not found at: {output_path}")
+        return
 
-#     Args:
-#     - file_path (Path): Path to the task-specific file.
-#     - video (UploadedFile): Video to be processed.
-#     - conf (float): Confidence threshold for processing.
-#     - type : 'Driving Guide Comment' or 'Bounding Box'
-#     Returns:
-#     None
-#     """
-#     st.write("Processing video...")
-#     # Example: Save the uploaded video
-#     with open(settings.UPLOADED_VIDEO_PATH, 'wb') as out_file:
-#         out_file.write(video.read())
+    # Convert the processed video to MP4 format and overwrite the original file
+    clip = mp.VideoFileClip(str(output_path))
+    converted_output_path = output_path.with_suffix(".mp4")
+    clip.write_videofile(str(converted_output_path), codec="libx264")
 
-#     # Example processing logic
-#     if type == "Bounding Box":
-#         st.write("Processing video with Bounding Box model...")
-
-#     elif type == "Driving Guid Comment":
-#         st.write("Processing video with Driving Guide Comment model...")
-#         print(f'[info] uploaded video path : {settings.UPLOADED_VIDEO_PATH}')
-#         print(f'[info] output video path : {settings.OUTPUT_VIDEO_PATH}')
-#         all_main(settings.CFG_DIR, settings.UPLOADED_VIDEO_PATH, settings.OUTPUT_VIDEO_PATH, score_threshold)
-#     else:
-#         st.error("Invalid task selected")
-
-#     # Example: Save the processed video
-#     # Assuming the processed video is saved at settings.OUTPUT_VIDEO_PATH
-#     st.write(f"Video saved at: {settings.OUTPUT_VIDEO_PATH}")
-
-
-def process_video(video, score_threshold, type='Driving Guide Comment'):
-    st.write("Processing video...")
-    with open(settings.UPLOADED_VIDEO_PATH, 'wb') as out_file:
-        out_file.write(video.read())
-
-    # Check if the uploaded video was saved correctly
-    if not settings.UPLOADED_VIDEO_PATH.exists():
-        st.error(f"Uploaded video not found at: {settings.UPLOADED_VIDEO_PATH}")
-
-    # Call the processing function (assuming all_main is defined elsewhere)
-    all_main(settings.CFG_DIR, settings.OUTPUT_VIDEO_PATH, settings.UPLOADED_VIDEO_PATH, None)
-
-    # Check if the processed video was saved
-    if not settings.OUTPUT_VIDEO_PATH.exists():
-        st.error(f"Processed video not found at: {settings.OUTPUT_VIDEO_PATH}")
-
-    st.write(f"Video saved at: {settings.OUTPUT_VIDEO_PATH}")
-
+    if not converted_output_path.exists():
+        st.error(f"⚠️ Converted video not found at: {converted_output_path}")
+        return
     
+    return converted_output_path  
+

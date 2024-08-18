@@ -39,7 +39,7 @@ CLASSES = [
     'yellow and green arrow', 'green arrow and green arrow', 'red cross', 'green arrow(down)', 'green arrow', 'etc'
 ]
 
-MAP_CLASSES_COLORS = { # map to yellow if the class includes yellow
+MAP_CLASSES_COLORS = { # maps to yellow if the class includes yellow
      0: 3, # green
      1: 1, # red
      2: 2, # yellow
@@ -129,5 +129,9 @@ def message_rule(messages, prev_tl_messages):
         color = (0, 152, 255)
     elif message == 'PROCEED WITH CAUTION':
         color = (0, 248, 211)
+    
+    # sanity check
+    # print(f'[DEBUG] Add message {message}')
+
     prev_tl_messages.append(message) 
     return message, color, prev_tl_messages 

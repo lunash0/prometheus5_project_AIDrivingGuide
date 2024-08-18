@@ -8,7 +8,7 @@
 > - [Pedestrian Detection README.md](./Pedestrian-Detection/README.md)
 > - [Road Lane Detection README.md](./Lane-Detection/README.md)
 > - [Road Sign Detection README.md](./RoadSign-Detection/README.md)
-<center>🛠 Tech Stack 🛠
+<center> 🛠 Tech Stack 🛠
 
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![OpenCV](https://img.shields.io/badge/OpenCV-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white)
@@ -21,7 +21,9 @@
 <br>
 
 -----
-
+<p align ="center">
+  <img src="https://github.com/user-attachments/assets/f7b7a5a6-f9f1-429c-8fc4-1caa9da09e3c" alt="video_demo" width="500">
+</p>
 
 <br><br>
 ## 1. Brief? Simple? Introduction <- 무슨 단어 쓰는게 더 자연스러운가 
@@ -89,9 +91,8 @@ Using AI hub's traffic lights dataset, we trained the retinanet_resnet50_fpn_v2 
     - [x] Develop messeage printing algorithms (for non RGB cases, considering score using threshold, etc.)
 - [x] Add Image Output version
     - [x] Fix image/video input coexistence issue
-- [] Merge Road-Sign-Detection (AFTER COMPLETION)
-- [] Refactor (Hard coded, comments, path)
-- [] Connect Streamlit
+- [x] Connect Streamlit
 - [] Improve infernce time
   - [] Parallize
   - [] Change Lane detection (Merging) Algorithm
+- [] Refactor (Hard coded, comments, path, stremlit statistics page)
