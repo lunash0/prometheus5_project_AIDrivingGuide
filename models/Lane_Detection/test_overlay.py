@@ -1,14 +1,15 @@
 import os
 import argparse
 import torch
+from dataloader.transformers import Rescale
 from model.lanenet.LaneNet import LaneNet
 from torchvision import transforms
 import numpy as np
 from PIL import Image
 import cv2
-from scipy.spatial import distance as dist
+from concurrent.futures import ThreadPoolExecutor
 
-DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+DEVICE = torch.device("cuda:5" if torch.cuda.is_available() else "cpu")
 
 
 def load_test_data(img, transform):
@@ -23,9 +24,15 @@ def overlay_binary_mask(image, binary_mask, alpha=0.5, color=(255, 0, 0)):
     overlay = cv2.addWeighted(image, 1 - alpha, color_mask, alpha, 0)
     return overlay
 
+
 def merge_close_contours(contours, threshold=50):
     merged_contours = []
     used = [False] * len(contours)
+
+    def calculate_distance(c1, c2):
+        c1_center = np.mean(c1, axis=0)
+        c2_center = np.mean(c2, axis=0)
+        return np.linalg.norm(c1_center - c2_center)
 
     for i, c1 in enumerate(contours):
         if used[i]:
@@ -37,10 +44,7 @@ def merge_close_contours(contours, threshold=50):
             if i == j or used[j]:
                 continue
 
-            d = dist.cdist(
-                merged_contour.reshape(-1, 2), c2.reshape(-1, 2), "euclidean"
-            )
-            if np.any(d < threshold):
+            if calculate_distance(merged_contour, c2) < threshold:
                 merged_contour = np.vstack((merged_contour, c2))
                 used[j] = True
 
@@ -51,13 +55,9 @@ def merge_close_contours(contours, threshold=50):
 
 def calculate_weighted_score(contour, image_width):
     length = cv2.arcLength(contour, closed=True)
-
     contour_center_x = np.mean(contour[:, 0, 0])
-
     distance_from_center = abs(contour_center_x - image_width / 2)
-
     weighted_score = length / (distance_from_center + 1)
-
     return weighted_score
 
 
@@ -75,17 +75,24 @@ def process_frame(model, frame, transform, resize_width, resize_height):
         binary_pred_resized, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
     )
 
-    merged_contours = merge_close_contours(contours, threshold=1)  # threshold
+    with ThreadPoolExecutor() as executor:
+        future = executor.submit(
+            merge_close_contours, contours, threshold=5
+        )  # threshold
+        merged_contours = future.result()
+
+    scores = []
+    for contour in merged_contours:
+        score = calculate_weighted_score(contour, resize_width)
+        scores.append(score)
 
     weighted_contours = sorted(
-        merged_contours,
-        key=lambda c: calculate_weighted_score(c, resize_width),
-        reverse=True,
-    )[:5]
-    # contours count
+        zip(scores, merged_contours), key=lambda x: x[0], reverse=True
+    )
+    top5_contours = [contour for _, contour in weighted_contours[:5]]  # contours count
 
     top5_mask = np.zeros_like(binary_pred_resized)
-    cv2.drawContours(top5_mask, weighted_contours, -1, 255, thickness=cv2.FILLED)
+    cv2.drawContours(top5_mask, top5_contours, -1, 255, thickness=cv2.FILLED)
 
     overlay_img = overlay_binary_mask(
         input_img, top5_mask, alpha=0.5, color=(0, 0, 255)

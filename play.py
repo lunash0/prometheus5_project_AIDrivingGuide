@@ -5,10 +5,13 @@ from tqdm import tqdm
 from models.Pedestrian_Detection.ped_inference import detect_ped_frame, load_ped_model
 from models.TrafficLights_Detection.tl_inference import detect_tl_frame, message_rule, load_tl_model
 from models.Lane_Detection.lane_inference import detect_lane_frame , load_lane_model
+from pathlib import Path
 
 def draw_boxes_on_frame(frame, ped_info, tl_info, lane_info, task_type='all'):
     """
-    type = 'all', 'message'
+    type = ['all', 'message']
+        - all : bounding boxes and comments
+        - message : comments only 
     """
     ped_rects, ped_texts, ped_warning_texts = ped_info 
     tl_rectangles, tl_texts, tl_messages, prev_tl_messages = tl_info 
@@ -48,10 +51,33 @@ def draw_boxes_on_frame(frame, ped_info, tl_info, lane_info, task_type='all'):
 
     return frame, prev_tl_messages
 
+def detect_image(task_type, pedestrian_model, traffic_light_model, lane_model, input_path, output_path, \
+                 score_thr, iou_thr, conf_thr, warning_dst, device, \
+                 resize_width=1280, resize_height=720):
+    
+    img_frame = cv2.imread(input_path)
+    img_frame = cv2.resize(img_frame, (resize_width, resize_height))
+
+    prev_tl_messages = ['STOP', 'STOP']  # Initialize
+
+    ped_rects, ped_texts, ped_warning_texts = detect_ped_frame(pedestrian_model, img_frame, score_thr, iou_thr, conf_thr, warning_dst, device)
+    ped_info = (ped_rects, ped_texts, ped_warning_texts)
+
+    tl_rectangles, tl_texts, tl_messages = detect_tl_frame(traffic_light_model, img_frame, device, score_thr)
+    tl_info = (tl_rectangles, tl_texts, tl_messages, prev_tl_messages)
+
+    lane_info = detect_lane_frame(lane_model, img_frame, device, start_fraction=1/2)
+    processed_frame, prev_tl_messages = draw_boxes_on_frame(img_frame, ped_info, tl_info, lane_info, task_type)
+
+    cv2.imwrite(output_path, processed_frame)
+    print(f'[INFO] Saved image to {output_path}')
 
 def detect_video(task_type, pedestrian_model, traffic_light_model, lane_model, input_path, output_path, 
                  score_thr, iou_thr, conf_thr, warning_dst, device, 
                  resize_width=1280, resize_height=720):
+    """
+    Save video as avi file
+    """
     cap = cv2.VideoCapture(input_path)
     video_fps = cap.get(cv2.CAP_PROP_FPS) 
 
@@ -89,28 +115,48 @@ def detect_video(task_type, pedestrian_model, traffic_light_model, lane_model, i
     cap.release()
     print(f'[INFO] Saved video to {avi_output_path}')
 
-
-def detect_image(task_type, pedestrian_model, traffic_light_model, lane_model, input_path, output_path, \
-                 score_thr, iou_thr, conf_thr, warning_dst, device, \
+def detect_video2mp4(task_type, pedestrian_model, traffic_light_model, lane_model, input_path, output_path, 
+                 score_thr, iou_thr, conf_thr, warning_dst, device, 
                  resize_width=1280, resize_height=720):
+    """
+    Saves detected video as mp4 file
+    """
+    cap = cv2.VideoCapture(input_path)
+    video_fps = cap.get(cv2.CAP_PROP_FPS) 
+
+    codec = cv2.VideoWriter_fourcc(*'mp4v') 
+    mp4_output_path = str(Path(output_path).with_suffix(".mp4"))  
+    video_writer = cv2.VideoWriter(mp4_output_path, codec, video_fps, (resize_width, resize_height))
     
-    img_frame = cv2.imread(input_path)
+    frame_cnt = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-    img_frame = cv2.resize(img_frame, (resize_width, resize_height))
-    prev_tl_messages = ['STOP', 'STOP']  # Initialize
+    prev_tl_messages = ['NONE', 'NONE'] 
 
-    ped_rects, ped_texts, ped_warning_texts = detect_ped_frame(pedestrian_model, img_frame, score_thr, iou_thr, conf_thr, warning_dst, device)
-    ped_info = (ped_rects, ped_texts, ped_warning_texts)
+    print(f'[INFO] Total number of frames: {frame_cnt}')
 
-    tl_rectangles, tl_texts, tl_messages = detect_tl_frame(traffic_light_model, img_frame, device, score_thr)
-    tl_info = (tl_rectangles, tl_texts, tl_messages, prev_tl_messages)
+    with tqdm(total=frame_cnt, desc="Processing Frames") as pbar:
+        while True:
+            hasFrame, img_frame = cap.read()
+            if not hasFrame:
+                print(f'Processed all frames')
+                break
+            img_frame = cv2.resize(img_frame, (resize_width, resize_height))
+            
+            ped_rects, ped_texts, ped_warning_texts = detect_ped_frame(pedestrian_model, img_frame, score_thr, iou_thr, conf_thr, warning_dst, device)
+            ped_info = (ped_rects, ped_texts, ped_warning_texts)
 
-    lane_info = detect_lane_frame(lane_model, img_frame, device, start_fraction=1/2)
-    processed_frame, prev_tl_messages = draw_boxes_on_frame(img_frame, ped_info, tl_info, lane_info, task_type)
+            tl_rectangles, tl_texts, tl_messages  = detect_tl_frame(traffic_light_model, img_frame, device, score_thr)
+            tl_info = (tl_rectangles, tl_texts, tl_messages, prev_tl_messages)
 
-    cv2.imwrite(output_path, processed_frame)
-    print(f'[INFO] Saved image to {output_path}')
+            lane_info = detect_lane_frame(lane_model, img_frame, device)
+            processed_frame, prev_tl_messages = draw_boxes_on_frame(img_frame, ped_info, tl_info, lane_info, task_type)
 
+            video_writer.write(processed_frame) 
+            pbar.update(1)
+
+    video_writer.release()
+    cap.release()
+    print(f'[INFO] Saved video to {mp4_output_path}')
 
 def main(task_type, CFG_DIR, OUTPUT_DIR, video_path, image_path, score_threshold): 
     device = torch.device("cuda:5" if torch.cuda.is_available() else "cpu") 
@@ -132,7 +178,13 @@ def main(task_type, CFG_DIR, OUTPUT_DIR, video_path, image_path, score_threshold
 
 if  __name__ == "__main__":
     main(task_type="all", CFG_DIR='/home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/configs/model.yaml', \
-         OUTPUT_DIR='/home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/app/videos/demo_testing_output.mp4', \
-             video_path='/home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/app/videos/demo_testing.mp4', \
+         OUTPUT_DIR='/home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/app/videos/test_video4_clip_all_output.mp4', \
+             video_path='/home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/app/videos/clipped4.mp4', \
+                image_path=None, 
+                score_threshold=0.25)
+    
+    main(task_type="message", CFG_DIR='/home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/configs/model.yaml', \
+         OUTPUT_DIR='/home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/app/videos/test_video4_clip_message_output.mp4', \
+             video_path='/home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/app/videos/clipped4.mp4', \
                 image_path=None, 
                 score_threshold=0.25)

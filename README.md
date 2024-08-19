@@ -1,13 +1,12 @@
-# AI Driving Guide project
+# Real-time Driving Guide AI with Object Detection and Instance Segmentation
 
 This repository contains the codebase for the **AI Driving Guide project**, which provides driver guidance through *Object Detection* and *Instance Segmentation*. The project offers a user-friendly and customizable interface designed to detect and track pedestrians, traffic signs, and lanes in real-time video streams from various sources. For demonstration purposes, we use [Streamlit](https://streamlit.io/), a widely-used Python framework for developing interactive web applications.
 
 ## Overview
 This README file provides a general introduction to the project. For detailed information about each detection task, please refer to the following README files linked :
-- [Traffic Lights Detection README.md](./TrafficLights-Detection/README.md)
-- [Pedestrian Detection README.md](./Pedestrian-Detection/README.md)
-- [Road Lane Detection README.md](./Lane-Detection/README.md)
-- [Road Sign Detection README.md](./RoadSign-Detection/README.md)
+- [Traffic Lights Detection README.md](https://github.com/lunash0/prometheus5_project_AIDrivingGuide/tree/feat/traffic_lights_detection/TrafficLights-Detection)
+- [Pedestrian Detection README.md](https://github.com/lunash0/prometheus5_project_AIDrivingGuide/tree/feat/pedestrian_detection/Pedestrian-Detection)
+- [Road Lane Detection README.md](https://github.com/lunash0/prometheus5_project_AIDrivingGuide/tree/feat/lane_detection/Lane-Detection)
 
 <p align ="center">
   <img src="https://github.com/user-attachments/assets/f7b7a5a6-f9f1-429c-8fc4-1caa9da09e3c" alt="video_demo" width="500">
@@ -33,55 +32,90 @@ This README file provides a general introduction to the project. For detailed in
 ```
 pip install streamlit
 ```
-### Usage
+### WebApp Demo on Streamlit 
+**NOTE** : Before you run the following command, please modify the model path in `configs/model.yaml`. 
 ```
 streamlit run app/app.py
 ```
+### 🏠 Home page
 ![home_demo](./assets/home_demo.png)
+
+### Select and Upload your souce ➡️ Click Process Button and Wait ! 
 ![image_bbox_demo](./assets/image_bbox_demo.png)
 ![image_bbox_input_demo](./assets/image_bbox_input_demo.png)
+## Training
+For fine-tuning the backbone, follow the bash file in `scripts/train.sh` :
+```
+cd ./models/Pedestrian_Detection/
+python train.py \
+    --mode train \
+    --config_file configs/noHue_0.50.5_large_re_3.yaml \
+    --OUTPUT_DIR ${OUTPUT_DIR}
 
-## 2. Detection Tasks
-### 2.1. Traffic Lights Detection
-Using AI hub's traffic lights dataset, we trained the retinanet_resnet50_fpn_v2 model provided by torchvision. Not only can it distinguish red/green/yellow lights, but it can also distinguish information about left turns and right turns.
+cd ../Lane_Detection/
+python train.py \
+    --dataset ${DATASET_DIR}  \
+    --pretrained ./model_weight/existing/best_model.pth
 
-<br>
+cd ../TrafficLights_Detection
+python train.py  # Modify config.py for your configurations
+```
+You can also download each finetuned model url from here:
+- [Pedestrian Detection](https://drive.google.com/file/d/10v2MYGYEH9h2a7KQS9HI1jGNG9QWBRC6/view?usp=drive_link)
+- [TrafficLights Detection](https://drive.google.com/file/d/1yA3YCBp68J29G6osIzDu17igv3G3M2pM/view?usp=drive_link)
+- [Lane Detection](https://drive.google.com/file/d/1ahltlZjJl-hdBRxf58jfbwFygS6bqIFB/view?usp=drive_link)
 
-### 2.2. Pedestrian Detection
+## Results
+#### Total View
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/1c7b86a3-597e-4048-85eb-6937bc1e0ced" alt="combined_video" style="width: 100%;">
+</div>
 
-<br>
-
-### 2.3. Road Lane Detection
-
-<br>
-
-  <br><br><br>
-
-
-## Inference Results
- 여기에 인퍼런스 영상 원본 캡쳐화면이랑 거기에 4가지 모델 다 적용시킨 아웃풋 영상 캡쳐화면 넣어서 간단하게 보여주기
-
-
-## Acknowledgements
+#### Left : Comments Only | Right : Total View
+<div align="center">
+  <img src="https://github.com/user-attachments/assets/7a59aa64-ab7c-4b67-89f7-8eaa8149043a" alt="output_combined" style="width: 100%;">
+</div>
 
 
 ## Directory Structure
 
 ```
-blank
+prometheus5_project_AIDrivingGuide/
+│
+├── README.md         
+├── play.py           
+├── __init__.py      
+│
+├── engine/           
+│   ├── models.py    
+│   ├── utils.py       
+│   └── __init__.py   
+│
+├── models/           
+│   ├── TrafficLights_Detection/
+│   ├── Pedestrian_Detection/
+│   └── Lane_Detection/
+│
+├── scripts/           
+│   ├── train.sh   
+│   └── inference.sh   
+│
+├── configs/           
+│   └── model.yaml     
+│
+├── assets/           
+│   ├── image_bbox_input_demo.png
+│   ├── home_demo.png
+│   └── ... 
+│
+└── app/              
+    ├── app.py      
+    ├── settings.py   
+    └── assets/       
+        ├── videos/
+        └── images/
 ```
   <br><br><br><br><br><br>
-
-
-
-
-
-
-
-> **About External Resources**   
-> 
-> 프로젝트에 포함된 외부 코드나 리소스 정보(각각의 출처 및 배포 라이선스)
-
 
 # TO-DO
 - [x] Merge Pedestrian-Detection
@@ -95,3 +129,4 @@ blank
 - [] Improve infernce time
   - [] Change Lane detection (Merging) Algorithm
 - [] Refactor (Hard coded, comments, path, stremlit statistics page)
+
