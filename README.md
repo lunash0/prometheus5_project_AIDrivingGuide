@@ -1,20 +1,12 @@
 # Real-time Driving Guide AI with Object Detection and Instance Segmentation
 
-This repository contains the codebase for the **AI Driving Guide project**, which provides driver guidance through *Object Detection* and *Instance Segmentation*. The project offers a user-friendly and customizable interface designed to detect and track pedestrians, traffic signs, and lanes in real-time video streams from various sources. For demonstration purposes, we use [Streamlit](https://streamlit.io/), a widely-used Python framework for developing interactive web applications.
+This repository contains the codebase for the **AI Driving Guide project**, which provides driver guidance through *Object Detection* and *Instance Segmentation*. The project offers a user-friendly and customizable interface designed to detect and track pedestrians, traffic signs, and lanes in real-time video streams from various sources. For demonstration purposes, we use [Streamlit](https://streamlit.io/), a widely-used Python framework for developing interactive web applications.  
+<br/>
 
-## Overview
-This README file provides a general introduction to the project. For detailed information about each detection task, please refer to the following README files linked :
-- [Traffic Lights Detection README.md](https://github.com/lunash0/prometheus5_project_AIDrivingGuide/tree/feat/traffic_lights_detection/TrafficLights-Detection)
-- [Pedestrian Detection README.md](https://github.com/lunash0/prometheus5_project_AIDrivingGuide/tree/feat/pedestrian_detection/Pedestrian-Detection)
-- [Road Lane Detection README.md](https://github.com/lunash0/prometheus5_project_AIDrivingGuide/tree/feat/lane_detection/Lane-Detection)
-
-<p align ="center">
-  <img src="https://github.com/user-attachments/assets/f7b7a5a6-f9f1-429c-8fc4-1caa9da09e3c" alt="video_demo" width="500">
-</p>
-
-
-<center> 🛠 Tech Stack 🛠  
-<br></br> 
+<div align="center">
+🛠 Tech Stack 🛠  
+  
+<br/>  
 
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![OpenCV](https://img.shields.io/badge/OpenCV-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white)
@@ -22,27 +14,60 @@ This README file provides a general introduction to the project. For detailed in
 ![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)
 ![Notion](https://img.shields.io/badge/Notion-000000?style=for-the-badge&logo=notion&logoColor=white)
 
-</center>
+</div>
 
+<br/> <br/>
 
+## Overview
 
+This README file provides a general introduction to the project. For detailed information about each detection task, please refer to the following README files linked :
+- [Traffic Lights Detection README.md](https://github.com/lunash0/prometheus5_project_AIDrivingGuide/tree/feat/traffic_lights_detection/TrafficLights-Detection)
+- [Pedestrian Detection README.md](https://github.com/lunash0/prometheus5_project_AIDrivingGuide/tree/feat/pedestrian_detection/Pedestrian-Detection)
+- [Road Lane Detection README.md](https://github.com/lunash0/prometheus5_project_AIDrivingGuide/tree/feat/lane_detection/Lane-Detection)
+
+<p align ="center">
+<br/>
+  <img src="https://github.com/user-attachments/assets/f7b7a5a6-f9f1-429c-8fc4-1caa9da09e3c" alt="video_demo" width="500">
+</p>
+
+<br/><br/>
 
 ## Getting Started
 ### Requirements
+Create a virtual environment and install dependencies:  
 ```
+conda create -n aicar python=3.8
+conda activate aicar
+pip install torch torchvision
+pip install tqdm
+pip install matplotlib
 pip install streamlit
 ```
-### WebApp Demo on Streamlit 
+## WebApp Demo on Streamlit 
+You can look at our project through `http://localhost:8501/` in web browser.  
 **NOTE** : Before you run the following command, please modify the model path in `configs/model.yaml`. 
 ```
 streamlit run app/app.py
 ```
-### 🏠 Home page
+### 🏠 Home page for simulation
+You can see the following initial screen.  
+
 ![home_demo](./assets/home_demo.png)
+<br/><br/>
 
 ### Select and Upload your souce ➡️ Click Process Button and Wait ! 
+In this section, users can upload the video they wish to analyze and watch as the model processes it. After selecting and uploading their source file, users click the Process button, initiating the AI model to analyze the video in real-time. The output, whether an image or video, will display detected objects like pedestrians, traffic lights, and lanes on the screen. This process is automated and designed for user convenience, providing real-time feedback.
+
+Additionally, you can set your own score threshold.
+
 ![image_bbox_demo](./assets/image_bbox_demo.png)
-![image_bbox_input_demo](./assets/image_bbox_input_demo.png)
+![image_select_demo](./assets//select_all_image_sample.png)
+
+### 💭 Feedback Page
+Feel free to give feedback to our demo!
+   
+![feedback_png](./assets/feedback.png)
+
 ## Training
 For fine-tuning the backbone, follow the bash file in `scripts/train.sh` :
 ```
@@ -65,17 +90,49 @@ You can also download each finetuned model url from here:
 - [TrafficLights Detection](https://drive.google.com/file/d/1yA3YCBp68J29G6osIzDu17igv3G3M2pM/view?usp=drive_link)
 - [Lane Detection](https://drive.google.com/file/d/1ahltlZjJl-hdBRxf58jfbwFygS6bqIFB/view?usp=drive_link)
 
+## Inference
+For inference, instead of Webapp, you can directly run through the bash file in `scripts/inference.sh` which executes [inference.py](./inference.py).
+```
+python inference.py \
+    --task_type all \
+    --CFG_DIR configs/model.yaml \
+    --OUTPUT_DIR test_video/kaggle_clip_all.mp4 \
+    --video videos/kaggle_clip.mp4 \
+    --ped_score_threshold 0.25 \
+    --tl_score_threshold 0.4 &
+
+python inference.py \
+    --task_type message \
+    --CFG_DIR configs/model.yaml \
+    --OUTPUT_DIR test_video/kaggle_clip_message.mp4 \
+    --video videos/kaggle_clip.mp4 \
+    --ped_score_threshold 0.25 \
+    --tl_score_threshold 0.4 
+```
 ## Results
-#### Total View
+There are two types of results you can review:
+- The first type shows the object detection results using bounding boxes for pedestrians and traffic lights and lines for lanes.
+- The second type provides feedback, such as displaying 'Stop' on the screen when a stop sign is detected or 'Proceed with caution' when a pedestrian is nearby.
+
+You can also see the results of applying both types simultaneously.  
+<br/>
+
+#### [Simulation Video 1] Left: Raw(nothing applied) | Right: Total View
+The first simulation video shows the original video(left) and the total view(right).
 <div align="center">
   <img src="https://github.com/user-attachments/assets/1c7b86a3-597e-4048-85eb-6937bc1e0ced" alt="combined_video" style="width: 100%;">
 </div>
+<br/>
 
-#### Left : Comments Only | Right : Total View
+#### [Simulation Video 2] Left : Comments Only | Right : Total View
+The second simulation shows the results with feedback only(left) and the total view(right).
 <div align="center">
   <img src="https://github.com/user-attachments/assets/7a59aa64-ab7c-4b67-89f7-8eaa8149043a" alt="output_combined" style="width: 100%;">
 </div>
 
+<img src="./assets/test_clip11_clip.gif" alt="test_video11" width="1000" >
+
+<br/><br/>
 
 ## Directory Structure
 
@@ -83,7 +140,8 @@ You can also download each finetuned model url from here:
 prometheus5_project_AIDrivingGuide/
 │
 ├── README.md         
-├── play.py           
+├── play.py   
+├── inference.py           
 ├── __init__.py      
 │
 ├── engine/           
@@ -104,29 +162,15 @@ prometheus5_project_AIDrivingGuide/
 │   └── model.yaml     
 │
 ├── assets/           
-│   ├── image_bbox_input_demo.png
-│   ├── home_demo.png
+│   ├── feedback.json
 │   └── ... 
 │
 └── app/              
     ├── app.py      
+    ├── home.py      
+    ├── feedback.py      
+    ├── helper.py      
     ├── settings.py   
-    └── assets/       
-        ├── videos/
-        └── images/
+    ├── images/   
+    └── videos/
 ```
-  <br><br><br><br><br><br>
-
-# TO-DO
-- [x] Merge Pedestrian-Detection
-- [x] Merge Traffic-Lights-Detection
-    - [x] Fix Detecting Color of Light Issue
-- [x] Merge Lane-Detection
-    - [x] Develop messeage printing algorithms (for non RGB cases, considering score using threshold, etc.)
-- [x] Add Image Output version
-    - [x] Fix image/video input coexistence issue
-- [x] Connect Streamlit
-- [] Improve infernce time
-  - [] Change Lane detection (Merging) Algorithm
-- [] Refactor (Hard coded, comments, path, stremlit statistics page)
-

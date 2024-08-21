@@ -39,6 +39,7 @@ OUTPUT_VIDEO_PATH_2_AVI = VIDEO_DIR / 'processed_video_2.avi'  # Added for AVI o
 CFG_DIR = '/home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/configs/model.yaml'
 
 # Description config
-POSTER_URL = ''
+POSTER_URL = 'https://drive.google.com/file/d/1-fiCVhsU0hYbtdG4lsOg-xQNXFEaZ3hj/view?usp=sharing'
 GITHUB = 'https://github.com/lunash0/prometheus5_project_AIDrivingGuide'
 PROMETHEUS_URL = 'https://prometheus-ai.net/'
+FEEDBACK_FILE_PATH = Path("./assets/feedback.json")

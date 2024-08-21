@@ -1,4 +1,5 @@
 #!/bin/bash 
+# 📍NOTICE: You can find detailed explanation to finetune each model through corresponding README.md.
 
 echo "Starting Pedestrian Detection model training..."
 cd ./models/Pedestrian_Detection/
@@ -18,4 +19,3 @@ cd ../TrafficLights_Detection
 python train.py  # Modify config.py for your configurations
 
 echo "All training processes have been started." # Modify the directories of each model's paths
-# 📍NOTICE: You can find detailed explanation to finetune each model through corresponding README.md.

@@ -1,13 +1,9 @@
 import numpy as np
 import cv2
 import torch
-import os
-import time
-import argparse
-import pathlib
 from torchvision import transforms as transforms
 from torchvision.transforms import functional as F
-from torchvision.models.detection.retinanet import retinanet_resnet50_fpn, RetinaNetClassificationHead
+from torchvision.models.detection.retinanet import RetinaNetClassificationHead
 import torchvision
 from functools import partial
 
@@ -35,32 +31,32 @@ def load_tl_model(checkpoint_path, num_classes, device):
     return model 
 
 CLASSES = [
-    'green', 'red', 'yellow', 'red and green arrow', 'red and yellow', 'green and green arrow', 'green and yellow',
-    'yellow and green arrow', 'green arrow and green arrow', 'red cross', 'green arrow(down)', 'green arrow', 'etc'
+    'go', 'stop', 'wait', 'red and green arrow', 'stop/wait', 'green and green arrow', 'go/wait',
+    'wait/go', 'go arrow', 'stop cross', 'go arrow(down)', 'go arrow', 'etc'
 ]
 
-MAP_CLASSES_COLORS = { # maps to yellow if the class includes yellow
-     0: 3, # green
-     1: 1, # red
-     2: 2, # yellow
+MAP_CLASSES_COLORS = { # maps to stop if the class includes red for the driving safety
+     0: 3, # green = go
+     1: 1, # red = stop
+     2: 2, # yellow = wait
      3: 4, # red and green arrow
-     4: 2, # red and yellow
+     4: 1, # red and yellow = stop/wait
      5: 3, # green and green arror
-     6: 2, # green and yellow
-     7: 2, # yellow and green arrow
-     8: 3, # green arrow and green arrow
-     9: 1, # red cross
-     10: 3, # green arrow(down)
-     11: 3, # green arrow
+     6: 2, # green and yellow = go/wait
+     7: 2, # yellow and green arrow = wait/go
+     8: 3, # green arrow and green arrow = go arrow
+     9: 1, # red cross = stop cross
+     10: 3, # green arrow(down) = go arrow(down)
+     11: 3, # green arrow = go arrow
      12: 0 # etc
 }
           
 COLORS = [
-    [0, 0, 0], # etc
-    [255, 0, 0], # red
-    [255, 255, 0], # yellow
-    [0, 255, 0], # green
-    [255, 255, 255] # Mixed
+    [0, 0, 0], # etc 0
+    [255, 0, 0], # red(stop) 1
+    [255, 255, 0], # yellow(wait) 2
+    [0, 255, 0], # green(go) 3
+    [255, 255, 255] # Mixed 4
 ]
 
 def process_frame(frame, model, device):
@@ -116,7 +112,7 @@ def detect_tl_frame(model, frame, device, score_threshold=0.25):
 
     return rectangles, texts, messages
 
-def message_rule(messages, prev_tl_messages):
+def message_rule(messages, prev_tl_messages, debug=False):
     prev_tl_message = prev_tl_messages[-1]
     message = max(messages)
     if message == 'STOP':
@@ -131,7 +127,8 @@ def message_rule(messages, prev_tl_messages):
         color = (0, 248, 211)
     
     # sanity check
-    # print(f'[DEBUG] Add message {message}')
+    if debug:
+        print(f'[DEBUG] Add message {message}')
 
     prev_tl_messages.append(message) 
     return message, color, prev_tl_messages 

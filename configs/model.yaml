@@ -2,19 +2,16 @@ pedestrian:
   model_path: /home/yoojinoh/Others/PR/data/weights/pedestrian.pth
   iou_threshold: 0.3
   confidence_threshold: 0.3
-  warning_distance: 167
+  warning_distance: 180
   num_classes: 2
 
 traffic_light:
   model_path: /home/yoojinoh/Others/PR/data/weights/traffic_light.pth
   num_classes: 13
   
-road_sign:
-  model_path: /home/yoojinoh/Others/PR/data/weights/road_sign.pth
-  num_classes: 2
 lane: 
   model_path: /home/yoojinoh/Others/PR/data/weights/lane.pth
   model_type: ENet
+  lane_merge_thr: 5 # Recommended to set btw 3 ~ 10
 
-device: 2
-score_threshold: 0.25
+device: 5

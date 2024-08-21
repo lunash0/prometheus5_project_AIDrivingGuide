@@ -5,7 +5,7 @@ import cv2
 import matplotlib.pyplot as plt
 import re 
 import os 
-from torchvision.ops import nms 
+from torchvision.ops.boxes import nms 
 import yaml 
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
@@ -35,7 +35,7 @@ def get_wh(image_size):
     """
     w = image_size[0]
     h = image_size[1]
-    return w, h  # width, height
+    return w, h 
 
 def train_transform(cfg_dir):
     """
