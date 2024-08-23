@@ -15,6 +15,12 @@
 - We use retinanet_resnet50_fpn_v2 model model to detect traffic lights.
 - Not only can it distinguish red/green/yellow lights, but it can also distinguish information about left turns and right turns.
 
+<br/>
+
+<div align="center">
+  <img src="./IMG/inference_result.jpg" style="width:1000px;">
+</div>
+
   <br><br><br>
 
 ## Model
@@ -55,5 +61,5 @@ python train.py
 ## 4. Result
 The graphs for mAP@0.50:095 and mAP@0.50 are as follows.(in 20 epochs)
 <div align="center">
-  <img src="./IMG/mAP_images.jpeg" style="width:1000px;">
+  <img src="./IMG/mAP_images.jpg" style="width:1000px;">
 </div>
