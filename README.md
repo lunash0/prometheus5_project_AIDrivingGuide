@@ -34,33 +34,38 @@ This README file provides a general introduction to the project. For detailed in
 
 ## Getting Started
 ### Requirements
-Create a virtual environment and install dependencies:  
-```
-conda create -n aicar python=3.8
-conda activate aicar
-pip install torch torchvision
-pip install tqdm
-pip install matplotlib
-pip install streamlit
-```
+Clone this repository:
+
+  ```
+  git clone https://github.com/lunash0/prometheus5_project_AIDrivingGuide.git
+  ```
+Create a virtual environment and install dependencies *(this project was developed using CUDA 12.1)*:  
+
+  ```
+  conda create -n aicar python=3.8
+  conda activate aicar
+  conda install pytorch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 pytorch-cuda=12.1 -c pytorch -c nvidia  
+  conda install -c conda-forge ffmpeg
+  pip install tqdm matplotlib streamlit open-cv
+  ```
+
 ## WebApp Demo on Streamlit 
 You can look at our project through `http://localhost:8501/` in web browser.  
-**NOTE** : Before you run the following command, please modify the model path in `configs/model.yaml`. 
+**NOTE** : Before you run the following command, please prepare model files and modify the path of model in `configs/model.yaml`.  
 ```
 streamlit run app/app.py
 ```
 ### 🏠 Home page for simulation
 You can see the following initial screen.  
 
-![home_demo](./assets/home_demo.png)
+![home_demo](./assets/homepage.png)
 <br/><br/>
 
 ### Select and Upload your souce ➡️ Click Process Button and Wait ! 
-In this section, users can upload the video they wish to analyze and watch as the model processes it. After selecting and uploading their source file, users click the Process button, initiating the AI model to analyze the video in real-time. The output, whether an image or video, will display detected objects like pedestrians, traffic lights, and lanes on the screen. This process is automated and designed for user convenience, providing real-time feedback.
+In this section, users can upload the video they wish to analyze and watch as the model processes it. After selecting and uploading their source file, users click the Process button, initiating the AI model to analyze the given video. The output, whether an image or video, will display detected objects like pedestrians, traffic lights, and lanes on the screen. This process is automated and designed for user convenience, providing real-time feedback.
 
-Additionally, you can set your own score threshold.
+Additionally, you can set your own score threshold of Pedestrian Detection model and Traffic Lights Detection model.
 
-![image_bbox_demo](./assets/image_bbox_demo.png)
 ![image_select_demo](./assets//select_all_image_sample.png)
 
 ### 💭 Feedback Page
@@ -88,7 +93,7 @@ python train.py  # Modify config.py for your configurations
 You can also download each finetuned model url from here:
 - [Pedestrian Detection](https://drive.google.com/file/d/10v2MYGYEH9h2a7KQS9HI1jGNG9QWBRC6/view?usp=drive_link)
 - [TrafficLights Detection](https://drive.google.com/file/d/1yA3YCBp68J29G6osIzDu17igv3G3M2pM/view?usp=drive_link)
-- [Lane Detection](https://drive.google.com/file/d/1ahltlZjJl-hdBRxf58jfbwFygS6bqIFB/view?usp=drive_link)
+- [Lane Detection](https://drive.google.com/file/d/1aYNhXmQgoIAVbMxX6hETGle0rnF4RGvt/view?usp=sharing)
 
 ## Inference
 For inference, instead of Webapp, you can directly run through the bash file in `scripts/inference.sh` which executes [inference.py](./inference.py).
@@ -116,21 +121,27 @@ There are two types of results you can review:
 
 You can also see the results of applying both types simultaneously.  
 <br/>
+#### [Simulation Image] Left: Comments Only | Right : Total View
+<div align="center">
+  <img src="./assets/combined_image.png" style="width:1000px;">
+</div>
 
 #### [Simulation Video 1] Left: Raw(nothing applied) | Right: Total View
 The first simulation video shows the original video(left) and the total view(right).
 <div align="center">
-  <img src="https://github.com/user-attachments/assets/1c7b86a3-597e-4048-85eb-6937bc1e0ced" alt="combined_video" style="width: 100%;">
+  <img src="https://github.com/user-attachments/assets/1c7b86a3-597e-4048-85eb-6937bc1e0ced" alt="combined_video" style="width: 1000px;">
 </div>
 <br/>
 
 #### [Simulation Video 2] Left : Comments Only | Right : Total View
 The second simulation shows the results with feedback only(left) and the total view(right).
 <div align="center">
-  <img src="https://github.com/user-attachments/assets/7a59aa64-ab7c-4b67-89f7-8eaa8149043a" alt="output_combined" style="width: 100%;">
+  <img src="https://github.com/user-attachments/assets/7a59aa64-ab7c-4b67-89f7-8eaa8149043a" alt="output_combined" style="width: 1000px;">
 </div>
 
-<img src="./assets/test_clip11_clip.gif" alt="test_video11" width="1000" >
+<div align="center">
+  <img src="./assets/test_clip11_clip.gif" alt="test_video11" style="width: 1000px;">
+</div
 
 <br/><br/>
 

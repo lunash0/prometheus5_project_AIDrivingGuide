@@ -2,7 +2,6 @@ from torchvision.models.detection.retinanet import retinanet_resnet50_fpn, Retin
 import torch 
 import torchvision
 from functools import partial
-# sys.path.append('/home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/')
 from models.Lane_Detection.model.lanenet import LaneNet
 
 """1. Pedestrian Detection Model"""

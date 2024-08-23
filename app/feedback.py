@@ -20,12 +20,13 @@ def page_feedback():
     st.write("---")
     st.subheader("Share Your Thoughts 🤗")
     feedback = st.text_area("Your feedback", "")
+    name = st.text_input("Your Name", "")
     rating = st.feedback("stars")
     sentiment_mapping = [1, 2, 3, 4, 5]
 
     if st.button("Submit"):
-        if feedback:
-            new_feedback = {"text": feedback, "rating": rating}
+        if feedback and name:
+            new_feedback = {"name": name, "text": feedback, "rating": rating}
             feedback_list = load_feedback()
             feedback_list.append(new_feedback)
             save_feedback(feedback_list)
@@ -39,10 +40,11 @@ def page_feedback():
     if feedback_list:
         for feedback in feedback_list:
             if isinstance(feedback, dict):
+                name = feedback.get('name', 'Anonymous')
                 n_star = sentiment_mapping[feedback.get('rating', 0)]
                 star = ""
                 for _ in range(n_star):
                     star += '⭐️'
-                st.markdown(f"- {feedback.get('text', 'No text')} {star} ({n_star}/5)")
+                st.markdown(f"- {feedback.get('text', 'No text')} - {name} {star} ({n_star}/5)")
     else:
         st.info("No feedback available yet. Be the first to leave your thoughts!")

@@ -16,7 +16,7 @@ VIDEO = 'Video'
 DEFAULT = 'Home'
 
 # Files for Tasks
-TASK_FILE = '/home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/main.py'
+TASK_FILE = '/home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/play.py'
 
 # Images config
 IMAGES_DIR = ROOT / 'images'
@@ -42,4 +42,4 @@ CFG_DIR = '/home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/configs/m
 POSTER_URL = 'https://drive.google.com/file/d/1-fiCVhsU0hYbtdG4lsOg-xQNXFEaZ3hj/view?usp=sharing'
 GITHUB = 'https://github.com/lunash0/prometheus5_project_AIDrivingGuide'
 PROMETHEUS_URL = 'https://prometheus-ai.net/'
-FEEDBACK_FILE_PATH = Path("./assets/feedback.json")
+FEEDBACK_FILE_PATH = Path("/home/yoojinoh/Others/PR/prometheus5_project_AIDrivingGuide/app/data/feedback.json")

@@ -63,7 +63,7 @@ def detect_ped_frame_simple(model, frame, score_thr, iou_thr, conf_thr, warning_
 
 def detect_ped_frame(model, frame, score_thr, iou_thr, conf_thr, warning_distance, device, 
                      roi_points=None, object_width=50, focal_length=1000, 
-                     collision_height_threshold=300):
+                     collision_height_threshold=400):
     
     boxes, labels, scores = process_frame(frame, model, device, iou_thresh=iou_thr, confidence_threshold=conf_thr)
     frame_height = frame.shape[0]
@@ -127,16 +127,16 @@ def detect_ped_frame(model, frame, score_thr, iou_thr, conf_thr, warning_distanc
 
                 # Set warning message based on height excess and direction
                 if height_excess < 150:  # Define "Caution" threshold
-                    warning_msg = f"CAUTION: Potential Collision {direction}"
+                    warning_msg = "CAUTION" # f"CAUTION: Potential Collision {direction}"
                 else:  # Anything above this is classified as "Warning"
-                    warning_msg = f"WARNING: Approaching Collision {direction}"
+                    warning_msg = "WARNING" #f"WARNING: Approaching Collision {direction}"
 
                 # Add warning message
                 warning_texts.append([warning_msg, (x1, y1 - 50)])
 
             # Previous warning based on distance from bottom of frame
-            # distance_px = frame_height - y2
-            # if distance_px < warning_distance:
-            #     warning_texts.append(["Collision Warning!", (x1, y2 + 30)])
+            distance_px = frame_height - y2
+            if distance_px < warning_distance:
+                warning_texts.append(["CAREFUL", (x1, y2 + 30)])
     
     return rectangles, texts, warning_texts
