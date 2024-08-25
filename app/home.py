@@ -160,9 +160,9 @@ def page_home():
                 st.info("Select Your video to start inference.")
             else: 
                 with open(settings.UPLOADED_VIDEO_PATH, 'wb') as out_file:
-                    out_file.write(source_file.getbuffer())
+                    out_file.write(source_file.read()) #getbuffer
                 with col1:
-                    st.video(source_file, autoplay=True)
+                    st.video(str(settings.UPLOADED_VIDEO_PATH), autoplay=True)
                     st.caption(f"Original Video")
                 with col2:
                     if st.sidebar.button('🔄 Process Video', key="process_video_one_button"):
