@@ -1,14 +1,13 @@
-# AI Driving Guide project
+# AI Driving Guide project - Pedestrian Detection
 
 <br>
 
-> This README file provides general introduction about the project. For detailed information about each detection task, please refer to the README files below.  
+> This README file provides information about pedestrian detection task. For detailed information about other detection tasks, please refer to the README files below: 
 >   
-> - [Traffic Lights Detection README.md](./TrafficLights-Detection/README.md)
-> - [Pedestrian Detection README.md](./Pedestrian-Detection/README.md)
-> - [Road Lane Detection README.md](./Lane-Detection/README.md)
-> - [Road Sign Detection README.md](./RoadSign-Detection/README.md)
-<center>🛠 Tech Stack 🛠
+> - [Traffic Lights Detection README.md](https://github.com/lunash0/prometheus5_project_AIDrivingGuide/blob/feat/traffic_lights_detection/README.md)
+> - [Road Lane Detection README.md](https://github.com/lunash0/prometheus5_project_AIDrivingGuide/blob/feat/lane_detection/README.md)
+
+<center>🛠 Tech Stack of Project 🛠
 
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![OpenCV](https://img.shields.io/badge/OpenCV-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white)
@@ -20,63 +19,162 @@
 
 <br>
 
------
+# Pedestrian-Detection
+This repository contains the codebase for the Pedestrian Detection component of our Driving Guidance Project.
+
+<!-- ## Examples
+<img src="./results/test_video2_capture1.png" alt="KOR_1" width="600" /> -->
+
+## Getting Started
+Clone this repository:  
+``` 
+git clone https://github.com/lunash0/prometheus5_project_AIDrivingGuide 
+```
+Create a virtual environment and install dependencies:
+```
+conda create -n pedestrian python=3.8
+conda activate pedestrian
+pip install -r requirements.txt
+```
+
+## Dataset
+We fine-tuned a pretrained model using the [AI-HUB dataset](https://aihub.or.kr/aihubdata/data/view.do?currMenu=&topMenu=&aihubDataSe=data&dataSetSn=189).
+ Specifically, we used the Bbox_13_new (9.69GB) and Bbox_19_new (9.87GB) datasets, totaling 19.56GB. The dataset is preprocessed into JSON files using  [preprocess.py](./preprocess.py), considering two classes, including `person` and `object(dog, cat)`.
+- Number of training samples: 7847
+- Number of test samples: 3341
+
+## Training models
+We provide a script in `scripts/train.py`, for training with various configurations provided in the pedestrian-detection model. You may use it as a reference to write your own training script.
+
+1. **Setup Configurations**:
+   Edit the configuration file in [configs/configs.yaml](./configs/configs.yaml) to match your requirements.
+2. **Run Training Script**:
+   Execute the following command to start training:
+
+    ```
+    python train.py \
+        --mode train \
+        --config_file configs/noHue_0.50.5_large_re_4.yaml \
+        --OUTPUT_DIR /home/yoojinoh/Others/PR/data/outputs 
+    ```
+    Alternatively, you can use the convenience script [scripts/train.sh](scripts/train.sh) to run the training.
+
+## Inference
+1. **Setup Configurations**:
+   To test a model with "test.py", first setup the corresponding configs through [configs/configs.yaml](./configs/configs.yaml)
+
+2. **Run Testing Script**:
+   Execute the following command to start testing:
+
+    ```
+    python test.py \
+        --mode test \
+        --config_file configs/noHue_0.50.5_large_re_4.yaml \
+        --model /home/yoojinoh/Others/PR/data/outputs/ \
+        --OUTPUT_DIR /home/yoojinoh/Others/PR/data/outputs 
+    ```
+    Alternatively, you can use the convenience script [scripts/test.sh](scripts/test.sh) to run the testing.
+
+## Results
+### 1) Training and Validation Logs
+We use `wandb` for visualizing training and validation metrics. Below are the plots showing the metrics logged during training and validation.
+
+<table>
+  <tr>
+    <td>
+      <img src="./results/wandb_meanf_train_.png" alt="Training Metrics" width="600" />
+    </td>
+    <td>
+      <img src="./results/wandb_meanf_val.png" alt="Validation Metrics" width="600" />
+    </td>
+  </tr>
+</table>
+
+### 2) Quantitative Results on AI-HUB Dataset
+All models are fine-tuned on the pre-trained model, `retinanet_resnet50_fpn`.
+RetinaNet with ResNet50 FPN has demonstrated superior performance in our object detection tasks, particularly in detecting smaller objects. Our multiple experiments have shown that it performs better compared to Faster R-CNN with ResNet50 FPN.
 
 
-<br><br>
-## 1. Brief? Simple? Introduction <- 무슨 단어 쓰는게 더 자연스러운가 
-- Goal
-  - Provide driver guidance through vehicle driving environment object recognition  
-  <br>
-- Detailed description
-  - Performs four types of detection: traffic lights, pedestrians, lanes, and traffic signs.  
-  - Using detection models trained on road driving images, create two types of videos: video giving driving guide comments, video showing bounding boxes on detection objects
-  - Use streamlit for demonstration. (Users can select the desired simulation video type and adjust model confidence directly.)
+| Model_Name                  | Epochs | Best Epoch | Train Loss | IoU  |
+|-----------------------------|--------|------------|------------|------|
+| noHue_0.40.4_large_re_1     | 16     | 8          | **0.773**      | 0.839|
+| noHue_0.50.5_large_re_2     | 10     | 8          | **0.773**      | 0.839|
+| noHue_0.50.5_large_re_3     | 18     | 10         | 0.802      | **0.888**|
+| noHue_0.50.5_large_re_4     | 9      | 1          | 1.078      | 0.862|
+| noHue_0.50.5_large_re_7     | 13     | 10         | 0.881      | 0.886|
 
-  <br><br><br>
+### 3) Testing On Real-time video
+We used `noHue_0.50.5_large_re_3` as our model for the best validation IoU score. 
 
-## 2. Detection Tasks
-### 2.1. Traffic Lights Detection
-Using AI hub's traffic lights dataset, we trained the retinanet_resnet50_fpn_v2 model provided by torchvision. Not only can it distinguish red/green/yellow lights, but it can also distinguish information about left turns and right turns.
-(내용 간단히만 더 보충하고 정리할 예정~,~)
+<img src="./results/test_video2_capture1.png" alt="KOR_1" width="600" />
+<img src="./results/test_video_kaggle_capture2.png" alt="Kaggle_2" width="600" />
+<img src="./results/test_video_kaggle_capture1.png" alt="Kaggle_1" width="600" />
 
-<br>
+## Configurations Structure
+```
+train:
+  batch_size: 
+  seed: 
+  image_size:
+  num_classes: 
+  learning_rate: 
+  scheduler: 
+  optimizer: 
+  epochs: 
+  model_name: 
+  iou_threshold: 
+  confidence_threshold:
+  device: 
+  early_stop: 
+  early_stop_patience: 
 
-### 2.2. Pedestrian Detection
+log:
+  project: 
+  entity: 
 
-<br>
+test:
+  input_video_path: 
+  num_classes: 
+  score_threshold: 
+  iou_threshold: 
+  confidence_threshold:
+  device: 
+  warning_distance: 
+  
+```
 
-### 2.3. Road Lane Detection
+## Directory Structure
+```
+Pedestrian-Detection/
+│
+├── configs/
+│ ├── configs.yaml 
+│ ├── noHue_0.50.5_large_re_4.yaml 
+│ └── ... 
+│
+├── data/
+│ ├── outputs/ 
+│ └── ...
+│
+├── results/
+│ ├── wandb_meanf_train_.png 
+│ ├── wandb_meanf_val.png 
+│ └── ... 
+│
+├── scripts/
+│ ├── train.sh 
+│ └── test.sh
+│
+├── __init__.py 
+├── README.md 
+├── dataset.py 
+├── engine.py 
+├── model.py 
+├── preprocess.py
+├── train.py
+├── test.py 
+├── utils.py 
+└── requirements.txt        
+```
 
-<br>
-
-### 2.4. Road Sign Detection
-
-  <br><br><br>
-
-## 3. Getting Started
-
-  <br><br><br>
-
-## 4. Inference Results
- 여기에 인퍼런스 영상 원본 캡쳐화면이랑 거기에 4가지 모델 다 적용시킨 아웃풋 영상 캡쳐화면 넣어서 간단하게 보여주기
-
-
-## 5. Directory Structure
-깃헙 레포 최종 정리되고나면 이부분 채워넣기
-
-  <br><br><br><br><br><br>
-
-
-
-
-
-
-
-> **About External Resources**   
-> 
-> 프로젝트에 포함된 외부 코드나 리소스 정보(각각의 출처 및 배포 라이선스)
-
-> **Members? Contributers?** <- 어떤 단어가 좋을까용  
-> 
-> Seunghyeon Moon, 본인 이름들 추가해주세요 스펠링틀릴까봐...
+> Pedestrian-Detection task is done by [Minji Kim](https://github.com/minji1289) and [Yoojin Oh](https://github.com/finallyupper). 
