@@ -56,7 +56,7 @@ We provide a script in `scripts/train.py`, for training with various configurati
     python train.py \
         --mode train \
         --config_file configs/noHue_0.50.5_large_re_4.yaml \
-        --OUTPUT_DIR /home/yoojinoh/Others/PR/data/outputs 
+        --OUTPUT_DIR /home/yoojinoh/Others/PR/data/outputs #YOUR LOCAL PATH
     ```
     Alternatively, you can use the convenience script [scripts/train.sh](Pedestrian-Detection/scripts/train.sh) to run the training.
 
@@ -71,8 +71,8 @@ We provide a script in `scripts/train.py`, for training with various configurati
     python test.py \
         --mode test \
         --config_file configs/noHue_0.50.5_large_re_4.yaml \
-        --model /home/yoojinoh/Others/PR/data/outputs/ \
-        --OUTPUT_DIR /home/yoojinoh/Others/PR/data/outputs 
+        --model /home/yoojinoh/Others/PR/data/outputs/ \ #YOUR LOCAL PATH
+        --OUTPUT_DIR /home/yoojinoh/Others/PR/data/outputs #YOUR LOCAL PATH
     ```
     Alternatively, you can use the convenience script [scripts/test.sh](Pedestrian-Detection/scripts/test.sh) to run the testing.
 
